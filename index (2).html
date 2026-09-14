@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Cave Fundraising Control</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --bg:#f4f6f9; --card:#ffffff; --ink:#26262b; --mut:#6d6d74; --soft:#75808f;
+  --line:#e8edf3; --row:#eef2f7; --fill:#f1f4f8; --brand:#1d5981; --accent:#3e97d2; --accent-soft:#eaf3fa;
+  --dark:#26262b; --dark2:#333338; --bad:#d63331;
+  --s-not:#6f7d8c; --s-dra:#7ab7f7; --s-sen:#3d82e0; --s-awa:#1a55a5; --s-off:#eda100;
+  --s-ten:#c14d1d; --s-con:#1baf7a; --s-met:#00795c; --s-dec:#d63331;
+  --f1:#86b6ef; --f2:#5598e7; --f3:#2a78d6; --f4:#1c5cab; --f5:#104281;
+  --r:10px; --shadow:0 1px 3px rgba(18,28,45,.06),0 10px 28px rgba(18,28,45,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',Arial,Helvetica,sans-serif;font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--brand)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.hide{display:none!important}
+
+/* ================= login (Cave, monochrome) ================= */
+#login{min-height:100vh;background:#fff;display:flex;align-items:center;justify-content:center;padding:24px;color:#141414}
+#login :focus-visible{outline-color:#141414}
+.lcard{width:min(400px,100%);text-align:left}
+.lmark{font-size:12px;font-weight:700;letter-spacing:.16em;color:#141414}
+.lmark b{color:#8a8a8a;font-weight:700}
+.lcard h1{font-size:26px;font-weight:600;margin:10px 0 4px;letter-spacing:-.01em;color:#141414}
+.lsub{color:#6e6e6e;font-size:13.5px;margin:0 0 26px}
+.lfield{margin-bottom:14px}
+.lfield label{display:block;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#6e6e6e;margin-bottom:6px}
+.lfield input{width:100%;border:1px solid #d6d6d6;border-radius:8px;padding:10px 12px;background:#fff;color:#141414}
+.lfield input:focus{border-color:#141414;outline:none;box-shadow:0 0 0 3px #ececec}
+.lbtn{width:100%;margin-top:8px;background:#141414;color:#fff;border:0;border-radius:8px;padding:11px 12px;font-weight:600}
+.lbtn:hover{background:#000}
+.lerr{color:#141414;font-weight:600;font-size:13px;margin:10px 0 0;min-height:18px}
+.lerr.ok{color:#2b6a3e}
+.lfoot{margin-top:34px;color:#8a8a8a;font-size:11.5px;border-top:1px solid #e4e4e4;padding-top:14px}
+.llinks{display:flex;gap:16px;margin-top:14px;font-size:12.5px}
+.llinks button{border:0;background:none;padding:0;color:#141414;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.llinks button:hover{color:#000}
+.lbtn:disabled{opacity:.55;cursor:default}
+.whoami{font-size:12px;color:#c3c7cf;white-space:nowrap}
+.whoami b{color:#fff;font-weight:600}
+.whoami .tm{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;border-radius:4px;padding:2px 5px;background:#3a3a41;color:#e7e9ee}
+.chip-save.err{color:#ffb3ae;background:#4d3535}
+.act{max-width:920px;margin-top:14px}
+.act .dl{margin-bottom:4px}
+.actl{list-style:none;margin:0;padding:0;font-size:12px;color:var(--mut)}
+.actl li{padding:3px 0;border-bottom:1px solid var(--row);display:flex;gap:10px;flex-wrap:wrap}
+.actl li:last-child{border-bottom:0}
+.actl .at{font-variant-numeric:tabular-nums;color:var(--soft);white-space:nowrap}
+.actl .who{font-weight:600;color:var(--ink)}
+.actl .what{overflow-wrap:anywhere}
+
+/* ================= XP shell ================= */
+#app{min-height:100vh;background:var(--bg)}
+header{position:sticky;top:0;z-index:40;background:var(--dark);color:#fff}
+.hwrap{max-width:1400px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:16px;height:60px}
+.mark{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.xpbox{background:#fff;color:var(--dark);font-weight:800;font-size:15px;letter-spacing:-.02em;border-radius:7px;padding:5px 7px;line-height:1}
+.mtxt .m1{font-size:14px;font-weight:600;letter-spacing:.01em;line-height:1.1}
+.mtxt .m2{font-size:10.5px;color:#b8bcc4;letter-spacing:.05em}
+nav{display:flex;gap:2px;height:100%}
+nav button{border:0;background:none;padding:0 13px;color:#c3c7cf;font-weight:500;font-size:13.5px;height:100%;border-bottom:2px solid transparent;border-radius:0}
+nav button:hover{color:#fff}
+nav button.on{color:#fff;border-bottom-color:var(--accent);font-weight:600}
+nav button:focus-visible{outline-offset:-3px}
+.hspace{flex:1}
+.gsw{position:relative}
+.gsw input{background:#3a3a41;border:0;border-radius:8px;color:#fff;padding:8px 12px 8px 30px;width:230px;font-size:13px}
+.gsw input::placeholder{color:#9ba0a9}
+.gsw input:focus{background:#44444c;outline:none;box-shadow:0 0 0 2px var(--accent)}
+.gsw .gi{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#9ba0a9;font-size:13px;pointer-events:none}
+#gpanel{position:absolute;top:44px;right:0;width:min(460px,92vw);max-height:430px;overflow:auto;background:#fff;color:var(--ink);border-radius:12px;box-shadow:0 12px 40px rgba(10,20,35,.25);padding:6px;z-index:60}
+#gpanel .gph{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);padding:8px 10px 4px}
+.gres{display:block;width:100%;text-align:left;border:0;background:none;border-radius:8px;padding:8px 10px}
+.gres:hover,.gres:focus{background:var(--accent-soft);outline:none}
+.gres .r1{display:flex;align-items:center;gap:8px}
+.gres .r1 b{font-size:13.5px;font-weight:600}
+.gres .rgn{font-size:9.5px;font-weight:700;letter-spacing:.05em;border-radius:4px;padding:2px 5px;background:var(--fill);color:var(--mut)}
+.gres .r2{font-size:12px;color:var(--mut);margin-top:1px}
+.gres .r3{font-size:11.5px;color:var(--soft);margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+.gempty{padding:14px 12px;font-size:13px;color:var(--mut)}
+.chip-save{font-size:11.5px;color:#c3c7cf;background:#3a3a41;border-radius:999px;padding:5px 12px;white-space:nowrap}
+.chip-save.dirty{color:#ffd889;background:#4a4433}
+.chip-save.ro{color:#ffb3ae;background:#4d3535}
+.lout{border:1px solid #4a4a52;background:none;border-radius:8px;padding:6px 12px;font-size:12.5px;color:#c3c7cf}
+.lout:hover{border-color:#fff;color:#fff}
+main{max-width:1400px;margin:0 auto;padding:20px 20px 60px}
+#gbanner{max-width:1400px;margin:14px auto 0;padding:0 20px}
+#gbanner .banner{background:#fdf4dd;color:#6d4c00;border-radius:var(--r);padding:9px 16px;font-size:13px}
+#gbanner .banner.red{background:#fdeeee;color:#8f2424}
+footer{max-width:1400px;margin:0 auto;padding:0 20px 36px;color:var(--soft);font-size:11.5px}
+
+/* ================= shared bits ================= */
+.crumb{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--soft);margin:4px 0 12px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow)}
+.tile .n{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.tile .l{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-top:1px}
+.tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.03em;border-radius:5px;padding:2px 6px;margin-left:6px;vertical-align:1px;background:var(--accent-soft);color:var(--brand)}
+.tag.bf{background:#fdf4dd;color:#8a5a00}
+.tag.src{background:var(--fill);color:var(--mut);margin-left:0}
+.tier{display:inline-block;min-width:20px;text-align:center;font-size:11px;font-weight:700;border-radius:6px;padding:2px 5px;background:var(--fill);color:var(--mut)}
+.tier.A{background:var(--brand);color:#fff}
+.tier.B{background:var(--accent-soft);color:var(--brand)}
+.btn{border:0;border-radius:8px;padding:8px 14px;font-weight:600;font-size:13px}
+.btn.pri{background:var(--brand);color:#fff}
+.btn.pri:hover{background:#174a6c}
+.btn.gho{background:var(--fill);color:var(--ink)}
+.btn.gho:hover{background:#e6ebf2}
+.btn.warn{background:#fdeeee;color:#8f2424}
+.btn.warn:hover{background:#f8dcdc}
+.mutcell{color:#a6aeb9}
+
+/* ================= overview ================= */
+.totrow{display:flex;gap:28px;flex-wrap:wrap;padding:16px 22px;margin:0 0 16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+.acard{padding:18px 20px;display:flex;flex-direction:column;gap:11px;text-align:left;cursor:pointer;border:0;transition:box-shadow .12s}
+.acard:hover{box-shadow:0 2px 6px rgba(18,28,45,.09),0 14px 34px rgba(18,28,45,.09)}
+.acard .top{display:flex;align-items:center;gap:10px}
+.acard h3{margin:0;font-size:16px;font-weight:600}
+.cdown{margin-left:auto;font-size:11px;font-weight:600;color:var(--brand);background:var(--accent-soft);border-radius:999px;padding:4px 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.awin{color:var(--mut);font-size:12.5px}
+.anums{display:flex;gap:22px;flex-wrap:wrap}
+.anums .n{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.anums .l{font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
+.aopen{font-size:12.5px;font-weight:600;color:var(--accent)}
+.secttl{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--soft);margin:22px 0 10px}
+.funrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+.fcard{padding:16px 20px 18px}
+.fcard h4{margin:0 0 12px;font-size:13.5px;font-weight:600}
+.frow{display:grid;grid-template-columns:74px 1fr 86px;gap:10px;align-items:center;margin-bottom:7px}
+.frow .fl{font-size:11.5px;color:var(--mut);text-align:right;line-height:1.2}
+.ftrack{min-width:0}
+.fbar{display:block;height:16px;border-radius:4px;min-width:2px}
+.fnum{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.fnum span{color:var(--soft);font-weight:500;margin-left:5px}
+.planrow{margin-top:16px;padding:16px 20px}
+.planrow h4{margin:0 0 10px;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--soft)}
+.plan{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 26px;font-size:13px}
+.plan .pt{font-weight:600}
+.plan .pd{color:var(--mut);margin-top:2px}
+
+/* ================= agenda ================= */
+.ahead{padding:16px 20px;margin-bottom:14px}
+.ahead .row1{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.ahead h2{margin:0;font-size:19px;font-weight:700;letter-spacing:-.01em}
+.ahead .win{color:var(--mut);font-size:13px}
+.ahead .note{color:var(--mut);font-size:12.5px;margin-top:6px;max-width:900px}
+.kpis{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px}
+.abar{margin-top:13px;max-width:680px}
+.sbar{display:flex;column-gap:2px;height:12px;border-radius:5px;overflow:hidden;background:var(--fill)}
+.sbar i{display:block;height:100%;min-width:3px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:9px}
+.lchip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--mut)}
+.lchip i{width:8px;height:8px;border-radius:3px;display:inline-block}
+.lchip b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.subtabs{display:flex;gap:6px;margin:0 0 12px}
+.subtabs button{border:0;background:none;border-radius:8px;padding:7px 14px;font-weight:600;font-size:13px;color:var(--mut)}
+.subtabs button:hover{background:#e9eef4}
+.subtabs button.on{background:var(--dark);color:#fff}
+.fbarrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.fbarrow input[type=search]{flex:1;min-width:170px;max-width:290px;border:0;border-radius:8px;padding:9px 12px;background:#fff;box-shadow:var(--shadow)}
+.fbarrow select{border:0;border-radius:8px;padding:9px 10px;background:#fff;color:var(--ink);font-size:13px;box-shadow:var(--shadow)}
+.fbarrow .clr{border:0;background:none;color:var(--accent);font-size:12.5px;font-weight:600;padding:6px}
+.fbarrow .cnt{margin-left:auto;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+.tcard{overflow:hidden}
+.tscroll{overflow:auto;max-height:min(64vh,760px)}
+table{border-collapse:collapse;width:100%;min-width:960px}
+thead th{position:sticky;top:0;background:#fff;z-index:5;text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);padding:10px 12px;box-shadow:inset 0 -1px 0 var(--line);white-space:nowrap}
+thead th.sortable{cursor:pointer}
+thead th.sortable:hover{color:var(--brand)}
+tbody td{padding:7px 12px;border-bottom:1px solid var(--row);font-size:13px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tr.rrow:hover td, tr.rrow:focus-visible td{background:#f7fafd}
+tr.rrow{cursor:pointer}
+tr.rrow:focus-visible{outline:none}
+tr.flash td{background:var(--accent-soft)}
+td.org{font-weight:600;max-width:300px}
+td.num{font-variant-numeric:tabular-nums;text-align:right}
+.sub2{display:block;font-weight:400;font-size:11.5px;color:var(--mut);margin-top:1px}
+.stwrap{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:4px 8px 4px 10px;background:var(--st,#fff)}
+.stwrap i{width:8px;height:8px;border-radius:50%;background:var(--sc,#999);flex:none}
+.stwrap select{border:0;background:transparent;font-size:12px;font-weight:600;color:var(--ink);padding:1px 0;max-width:122px}
+.stwrap select:focus{outline:none}
+.rsel{border:0;border-radius:999px;background:var(--fill);font-size:12px;font-weight:600;padding:5px 7px}
+.emptyrow td{padding:26px 16px;color:var(--mut);font-size:13px;border-bottom:0}
+.emptyrow button{border:0;background:none;color:var(--accent);font-weight:600;padding:0 4px}
+tr.drow>td{background:#f8fafd;padding:16px 20px 18px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 26px;margin-bottom:12px}
+.dl{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
+.dit .dv{font-size:13px;margin-top:2px;overflow-wrap:anywhere}
+.dv .cpy{border:0;background:var(--fill);border-radius:6px;font-size:11px;padding:3px 8px;margin-left:8px;color:var(--mut)}
+.dv .cpy:hover{color:var(--brand);background:var(--accent-soft)}
+.dpar{max-width:920px;font-size:13px;margin:0 0 10px}
+.dpar b{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);display:block;margin-bottom:3px}
+.nwrap{max-width:920px}
+.nwrap textarea{width:100%;min-height:60px;border:0;border-radius:8px;padding:9px 12px;background:#fff;box-shadow:var(--shadow);resize:vertical}
+.nwrap textarea:focus{outline:none;box-shadow:0 0 0 2px var(--accent)}
+.dfoot{display:flex;align-items:center;gap:14px;margin-top:12px}
+.dmeta{font-size:11.5px;color:var(--soft)}
+.removedbox{margin-top:14px;font-size:13px;color:var(--mut)}
+.removedbox summary{cursor:pointer;font-weight:600;padding:6px 2px}
+.removedbox .rrow2{display:flex;align-items:center;gap:10px;padding:6px 2px}
+.removedbox .rrow2 b{color:var(--ink);font-weight:600}
+.removedbox button{border:0;background:none;color:var(--accent);font-weight:600}
+
+/* ================= calendar ================= */
+.calhead{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+.calhead .cnt{font-size:12.5px;color:var(--mut)}
+.calscroll{overflow-x:auto;padding-bottom:6px}
+.cal{display:grid;grid-template-columns:56px repeat(5,minmax(168px,1fr));gap:4px;min-width:940px}
+.cal .dh{position:sticky;top:0;background:var(--bg);z-index:4;padding:6px 8px 8px;text-align:center}
+.cal .dh .d1{font-size:12.5px;font-weight:700}
+.cal .dh .d2{font-size:10.5px;color:var(--mut)}
+.cal .dh .d3{font-size:9.5px;color:#b0812c;font-weight:600}
+.cal .hh{font-size:10.5px;color:var(--soft);text-align:right;padding:8px 6px 0 0;font-variant-numeric:tabular-nums}
+.slot{min-height:46px;border-radius:8px;background:#fff;box-shadow:var(--shadow);padding:4px}
+.slot .addb{width:100%;height:100%;min-height:38px;border:0;background:none;border-radius:6px;color:#c6cdd6;font-size:16px;font-weight:600}
+.slot .addb:hover{background:var(--accent-soft);color:var(--accent)}
+.mtg{background:var(--accent-soft);border-radius:6px;padding:6px 8px;position:relative;text-align:left}
+.mtg .mo{font-size:12px;font-weight:600;line-height:1.25;display:flex;align-items:center;gap:6px}
+.mtg .mo i{width:7px;height:7px;border-radius:50%;flex:none;background:var(--sc,#999)}
+.mtg .mc{font-size:10.5px;color:var(--mut);margin-top:1px}
+.mtg .mx{position:absolute;top:3px;right:4px;border:0;background:none;color:var(--soft);font-size:13px;line-height:1;padding:2px 4px;border-radius:4px}
+.mtg .mx:hover{background:#fff;color:var(--bad)}
+
+/* ================= modals ================= */
+.ovl{position:fixed;inset:0;background:rgba(20,26,34,.44);z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:9vh 16px 16px}
+.modal{background:#fff;border-radius:14px;box-shadow:0 24px 70px rgba(10,20,35,.35);width:min(560px,100%);max-height:80vh;display:flex;flex-direction:column}
+.modal .mh{display:flex;align-items:center;gap:10px;padding:16px 20px 10px}
+.modal .mh h3{margin:0;font-size:16px;font-weight:700;flex:1}
+.modal .mh .mxx{border:0;background:var(--fill);border-radius:8px;font-size:14px;padding:5px 10px;color:var(--mut)}
+.modal .mb{padding:4px 20px 18px;overflow:auto}
+.modal .frm{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.modal .frm .full{grid-column:1/-1}
+.modal label{display:block;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+.modal input[type=text],.modal input[type=email],.modal select{width:100%;border:0;border-radius:8px;padding:9px 11px;background:var(--fill)}
+.modal input:focus,.modal select:focus{outline:none;box-shadow:0 0 0 2px var(--accent)}
+.modal .mferr{color:var(--bad);font-size:12.5px;min-height:16px;margin-top:8px;font-weight:600}
+.modal .mfoot{display:flex;gap:10px;justify-content:flex-end;padding:0 20px 18px}
+.pick .mb{padding-top:8px}
+.pick input[type=search]{width:100%;border:0;border-radius:8px;padding:10px 12px;background:var(--fill);margin-bottom:8px}
+.pick input:focus{outline:none;box-shadow:0 0 0 2px var(--accent)}
+.pres{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;border-radius:8px;padding:8px 10px}
+.pres:hover,.pres:focus{background:var(--accent-soft);outline:none}
+.pres i{width:8px;height:8px;border-radius:50%;flex:none}
+.pres .po{font-weight:600;font-size:13px}
+.pres .pm{font-size:11.5px;color:var(--mut)}
+.pres .pw{margin-left:auto;font-size:10px;font-weight:600;color:#8a5a00;background:#fdf4dd;border-radius:5px;padding:2px 6px;white-space:nowrap}
+
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:13px;border-radius:999px;padding:9px 18px;opacity:0;pointer-events:none;transition:opacity .18s;z-index:90;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+#toast.on{opacity:.97}
+
+@media(max-width:900px){
+  .hwrap{flex-wrap:wrap;height:auto;padding:8px 14px;gap:8px}
+  nav{order:3;width:100%;overflow-x:auto;height:40px}
+  .gsw input{width:150px}
+  main{padding:14px 12px 50px}
+  .totrow{gap:18px;padding:14px 16px}
+  .kpis{gap:18px}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <form class="lcard" id="lform">
+    <div class="lmark">CAVE <b>CAPITAL</b></div>
+    <h1>Fundraising Control</h1>
+    <p class="lsub">Restricted access.</p>
+    <div class="lfield"><label for="lem">Email</label><input id="lem" type="email" autocomplete="username" placeholder="name@company.com" required></div>
+    <div class="lfield" id="lpwf"><label for="lpw">Password</label><input id="lpw" type="password" autocomplete="current-password" placeholder="Password"></div>
+    <button class="lbtn" type="submit" id="lbtn">Sign in</button>
+    <p class="lerr" id="lerr" role="alert"></p>
+    <div class="llinks">
+      <button type="button" id="lmagic">Email me a sign-in link</button>
+      <button type="button" id="lforgot">Forgot password</button>
+    </div>
+    <p class="lfoot">Cave Capital. Confidential. Access is by invitation. Contact your Cave Capital representative.</p>
+  </form>
+
+  <form class="lcard hide" id="pform">
+    <div class="lmark">CAVE <b>CAPITAL</b></div>
+    <h1>Set your password</h1>
+    <p class="lsub" id="psub">Choose a password for your account.</p>
+    <div class="lfield"><label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password" placeholder="At least 10 characters" minlength="10" required></div>
+    <div class="lfield"><label for="pw2">Confirm password</label><input id="pw2" type="password" autocomplete="new-password" placeholder="Repeat the password" minlength="10" required></div>
+    <button class="lbtn" type="submit" id="pbtn">Save and continue</button>
+    <p class="lerr" id="perr" role="alert"></p>
+    <div class="llinks"><button type="button" id="pskip">Skip for now</button></div>
+    <p class="lfoot">Cave Capital. Confidential.</p>
+  </form>
+
+  <div class="lcard hide" id="noaccess">
+    <div class="lmark">CAVE <b>CAPITAL</b></div>
+    <h1>No access</h1>
+    <p class="lsub">The account <b id="naem"></b> is signed in but is not on the access list for this platform. Ask your Cave Capital representative to add it.</p>
+    <button class="lbtn" type="button" id="nalogout">Sign out</button>
+    <p class="lfoot">Cave Capital. Confidential.</p>
+  </div>
+</div>
+
+<div id="app" class="hide">
+  <header><div class="hwrap">
+    <div class="mark"><span class="xpbox">XP</span><span class="mtxt"><span class="m1">Asset Management</span><br><span class="m2">FUNDRAISING CONTROL</span></span></div>
+    <nav id="nav" aria-label="Sections"></nav>
+    <div class="hspace"></div>
+    <div class="gsw">
+      <span class="gi">&#9906;</span>
+      <input id="gq" type="search" placeholder="Search the investor base" autocomplete="off" aria-label="Search the investor base">
+      <div id="gpanel" class="hide"></div>
+    </div>
+    <span class="chip-save" id="chip">Loading</span>
+    <span class="whoami" id="whoami"></span>
+    <button class="lout" id="lout" type="button">Sign out</button>
+  </div></header>
+  <div id="gbanner"></div>
+  <main id="view"></main>
+  <footer>XP Asset Management, the asset management division of XP Inc. Working tool for the XP Infra VI international fundraise, prepared with Cave Capital. Confidential.</footer>
+</div>
+<div id="modalhost"></div>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+/* ================= configuration ================= */
+/* The publishable key is safe to ship in a public page: every read and write is
+   gated by Supabase Auth plus row level security on the database side. */
+const SUPABASE_URL = 'https://kxqzzzjspziqcjumczpo.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_7MCl_mY-oOCeJBng0mn92g_WYAM7Td0';
+const APP_URL = location.origin + location.pathname;
+
+/* ================= constants ================= */
+const STATUS = {
+  not_started:{l:'Not started', c:'var(--s-not)', t:'#eef1f4'},
+  drafted:{l:'Draft ready', c:'var(--s-dra)', t:'#ecf4fe'},
+  sent:{l:'Outreach sent', c:'var(--s-sen)', t:'#e9f1fc'},
+  awaiting:{l:'Awaiting reply', c:'var(--s-awa)', t:'#e8eef7'},
+  offered:{l:'Slot offered', c:'var(--s-off)', t:'#fdf4dd'},
+  tentative:{l:'Tentative', c:'var(--s-ten)', t:'#faeae2'},
+  confirmed:{l:'Confirmed', c:'var(--s-con)', t:'#e4f6ef'},
+  met:{l:'Meeting held', c:'var(--s-met)', t:'#e0f0ec'},
+  declined:{l:'Declined', c:'var(--s-dec)', t:'#fbe9e8'}
+};
+const RANK = {not_started:0,drafted:1,sent:2,awaiting:3,offered:4,tentative:5,confirmed:6,met:7,declined:8};
+const OWNERS = ['XP','CAVE'];
+const KEYS = ['us','ae','cn'];
+const RGN = {us:'US', ae:'UAE', cn:'CN'};
+const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+const AG = {}; /* filled from the database after sign-in: key -> {name,short,win,note,start,end,rows} */
+
+/* ================= state ================= */
+let state = normalize({});
+let sb = null;          /* supabase client */
+let me = null;          /* {id,email,name,team,can_edit} */
+let mode = 'boot';      /* boot | live | readonly */
+let pending = 0, lastSaved = null, saveError = false;
+let rtChannel = null;
+let view = 'home';
+const sub = {us:'targets', ae:'targets', cn:'targets'};
+const filters = {}; const expanded = {}; const sorts = {};
+KEYS.forEach(k=>{ filters[k]={q:'',tier:'',st:'',seg:'',resp:''}; expanded[k]=null; sorts[k]={col:'tier',dir:1}; });
+let pendingNote = null; /* {id, val} awaiting flush */
+
+function normalize(s){
+  s = s && typeof s==='object' ? s : {};
+  s.v = 2; s.rev = s.rev||1; s.updatedAt = s.updatedAt||'';
+  s.recs = s.recs||{};
+  s.added = s.added||{}; KEYS.forEach(k=>{ if(!Array.isArray(s.added[k])) s.added[k]=[]; });
+  s.excluded = Array.isArray(s.excluded) ? s.excluded : [];
+  s.mtgs = s.mtgs||{}; KEYS.forEach(k=>{ if(!Array.isArray(s.mtgs[k])) s.mtgs[k]=[]; });
+  return s;
+}
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function rec(id){ const r = state.recs[id] || {}; return {s:r.s||'not_started', r:r.r||'XP', n:r.n||'', t:r.t||'', by:r.by||''}; }
+function rowsOf(k){ const ex = new Set(state.excluded); return AG[k].rows.concat(state.added[k]).filter(r=>!ex.has(r.i)); }
+function findRow(k,id){ return AG[k].rows.find(r=>r.i===id) || state.added[k].find(r=>r.i===id); }
+function regionOf(id){ for(const k of KEYS){ if(findRow(k,id)) return k; } return null; }
+function fmtAUM(v){ const s=String(v==null?'':v).trim(); if(!s||!/^[\d,.]+$/.test(s)) return ''; const n=parseFloat(s.replace(/,/g,'')); if(isNaN(n)||n<=0) return ''; return n>=1000? '$'+(n/1000).toFixed(n>=100000?0:1)+'bn' : '$'+Math.round(n)+'m'; }
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast._x); toast._x=setTimeout(()=>t.classList.remove('on'),2600); }
+function stats(rows){
+  const c={}; for(const k in STATUS) c[k]=0;
+  rows.forEach(x=>c[rec(x.i).s]++);
+  const contacted = rows.length - c.not_started - c.drafted;
+  return { n:rows.length, c, tierA:rows.filter(x=>x.t==='A').length,
+    contacted, engaged:c.offered+c.tentative+c.confirmed+c.met,
+    booked:c.confirmed+c.met, held:c.met, declined:c.declined };
+}
+
+/* ================= auth ================= */
+function showLoginCard(which){
+  ['lform','pform','noaccess'].forEach(id=>$(id).classList.toggle('hide', id!==which));
+  $('login').classList.remove('hide'); $('app').classList.add('hide');
+}
+function authMsg(msg, ok){ const e=$('lerr'); e.textContent=msg||''; e.classList.toggle('ok', !!ok); }
+function busy(btn, on, label){ btn.disabled = !!on; if (label) btn.textContent = label; }
+function friendlyAuthError(err){
+  const m = (err && err.message) || '';
+  if (/invalid login credentials/i.test(m)) return 'Check the email and password and try again.';
+  if (/email not confirmed/i.test(m)) return 'This email has not been confirmed yet. Use the sign-in link in your invitation email.';
+  if (/rate limit|too many/i.test(m)) return 'Too many attempts. Wait a minute and try again.';
+  if (/signups not allowed|not allowed/i.test(m)) return 'This email is not on the access list.';
+  if (/network|fetch/i.test(m)) return 'Could not reach the server. Check your connection and try again.';
+  return m || 'Something went wrong. Try again.';
+}
+$('lform').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const email = $('lem').value.trim().toLowerCase(), password = $('lpw').value;
+  if (!email) { authMsg('Enter your email.'); return; }
+  if (!password) { authMsg('Enter your password, or ask for a sign-in link below.'); return; }
+  busy($('lbtn'), true, 'Signing in...'); authMsg('');
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  busy($('lbtn'), false, 'Sign in');
+  if (error) { authMsg(friendlyAuthError(error)); return; }
+  /* onAuthStateChange takes it from here */
+});
+$('lmagic').addEventListener('click', async ()=>{
+  const email = $('lem').value.trim().toLowerCase();
+  if (!email) { authMsg('Enter your email first.'); $('lem').focus(); return; }
+  busy($('lbtn'), true); authMsg('');
+  const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: APP_URL } });
+  busy($('lbtn'), false, 'Sign in');
+  if (error) { authMsg(friendlyAuthError(error)); return; }
+  authMsg('Sign-in link sent to '+email+'. Open it on this device.', true);
+});
+$('lforgot').addEventListener('click', async ()=>{
+  const email = $('lem').value.trim().toLowerCase();
+  if (!email) { authMsg('Enter your email first.'); $('lem').focus(); return; }
+  busy($('lbtn'), true); authMsg('');
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: APP_URL });
+  busy($('lbtn'), false, 'Sign in');
+  if (error) { authMsg(friendlyAuthError(error)); return; }
+  authMsg('If '+email+' is on the access list, a password reset link is on its way.', true);
+});
+$('pform').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const a = $('pw1').value, b = $('pw2').value;
+  if (a.length < 10) { $('perr').textContent = 'Use at least 10 characters.'; return; }
+  if (a !== b) { $('perr').textContent = 'The two passwords do not match.'; return; }
+  busy($('pbtn'), true, 'Saving...'); $('perr').textContent='';
+  const { error } = await sb.auth.updateUser({ password: a });
+  busy($('pbtn'), false, 'Save and continue');
+  if (error) { $('perr').textContent = friendlyAuthError(error); return; }
+  needsPassword = false; toast('Password saved');
+  await enterApp();
+});
+$('pskip').addEventListener('click', async ()=>{ needsPassword = false; await enterApp(); });
+$('lout').addEventListener('click', signOut);
+$('nalogout').addEventListener('click', signOut);
+async function signOut(){ try { await sb.auth.signOut(); } catch(e){} location.replace(APP_URL); }
+
+let needsPassword = false;   /* set when the session came from an invitation or a password reset link */
+let entered = false;
+
+async function boot(){
+  if (!window.supabase || !window.supabase.createClient) {
+    showLoginCard('lform'); authMsg('The sign-in library did not load. Check your connection and reload the page.'); return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' } });
+  const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
+  if (hash.get('type')==='invite' || hash.get('type')==='recovery') needsPassword = true;
+  if (hash.get('error_description')) { showLoginCard('lform'); authMsg(decodeURIComponent(hash.get('error_description').replace(/\+/g,' '))); }
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event==='PASSWORD_RECOVERY') needsPassword = true;
+    if (event==='SIGNED_OUT') { entered = false; showLoginCard('lform'); return; }
+    if (session && !entered) { history.replaceState(null, '', APP_URL); enterApp(); }
+  });
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) { history.replaceState(null, '', APP_URL); await enterApp(); }
+  else showLoginCard('lform');
+}
+
+/* ================= data loading ================= */
+async function loadMember(){
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return null;
+  const { data, error } = await sb.from('members').select('email,name,team,can_edit').eq('id', user.id).maybeSingle();
+  if (error || !data) return { id:user.id, email:user.email, member:false };
+  return { id:user.id, email:data.email||user.email, name:data.name||'', team:data.team||'XP', can_edit:!!data.can_edit, member:true };
+}
+async function loadAll(){
+  const [ag, inv, rs, ex, mt] = await Promise.all([
+    sb.from('agendas').select('*').order('sort_order'),
+    sb.from('investors').select('id,region,row,custom,sort_order').order('sort_order'),
+    sb.from('record_state').select('investor_id,status,owner,note,updated_at,updated_by'),
+    sb.from('excluded').select('investor_id'),
+    sb.from('meetings').select('id,region,day,hour,investor_id'),
+  ]);
+  const err = [ag,inv,rs,ex,mt].find(r=>r.error);
+  if (err) throw err.error;
+  KEYS.forEach(k=>{ AG[k] = { name:'', short:k.toUpperCase(), win:'', note:'', start:'2026-01-01', end:'2026-01-05', rows:[] }; });
+  (ag.data||[]).forEach(a=>{ if (AG[a.key]) Object.assign(AG[a.key], { name:a.name, short:a.short, win:a.win||'', note:a.note||'', start:a.start_date, end:a.end_date }); });
+  const s = normalize({});
+  (inv.data||[]).forEach(x=>{
+    const row = Object.assign({}, x.row || {}); row.i = x.id;
+    if (!AG[x.region]) return;
+    if (x.custom) { row.custom = true; s.added[x.region].push(row); } else AG[x.region].rows.push(row);
+  });
+  (rs.data||[]).forEach(r=>{ s.recs[r.investor_id] = { s:r.status, r:r.owner, n:r.note||'', t:r.updated_at||'', by:r.updated_by||'' }; });
+  s.excluded = (ex.data||[]).map(r=>r.investor_id);
+  (mt.data||[]).forEach(m=>{ if (s.mtgs[m.region]) s.mtgs[m.region].push({ id:m.id, d:m.day, h:m.hour, inv:m.investor_id }); });
+  state = s;
+}
+async function enterApp(){
+  if (entered) return;
+  try {
+    me = await loadMember();
+    if (!me) { showLoginCard('lform'); return; }
+    if (!me.member) { $('naem').textContent = me.email; showLoginCard('noaccess'); return; }
+    if (needsPassword) { $('psub').textContent = 'Choose a password for '+me.email+'. You can also keep using sign-in links.'; showLoginCard('pform'); $('pw1').focus(); return; }
+    await loadAll();
+  } catch(e){
+    console.error(e); showLoginCard('lform'); authMsg('Could not load the platform data: '+(e.message||e)); return;
+  }
+  entered = true;
+  mode = me.can_edit ? 'live' : 'readonly';
+  $('whoami').innerHTML = '<b>'+esc(me.name||me.email)+'</b><span class="tm">'+esc(me.team)+'</span>';
+  $('login').classList.add('hide'); $('app').classList.remove('hide');
+  updateChip(); banner(); render();
+  subscribeRealtime();
+}
+
+/* ================= persistence (one write per change) ================= */
+function updateChip(){
+  const c = $('chip'); c.className = 'chip-save';
+  if (mode==='readonly'){ c.classList.add('ro'); c.textContent='View only'; return; }
+  if (saveError){ c.classList.add('err'); c.textContent='Not saved, retry'; return; }
+  if (pending>0){ c.classList.add('dirty'); c.textContent='Saving...'; return; }
+  c.textContent = lastSaved ? ('Saved '+lastSaved.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})) : 'Live';
+}
+function banner(){
+  const b = $('gbanner');
+  if (mode==='readonly') b.innerHTML = '<div class="banner red">View-only access: browsing is open, but status, owner, note, calendar and list changes are not saved for this account.</div>';
+  else b.innerHTML = '';
+}
+async function persist(label, fn){
+  if (mode==='readonly') { toast('View-only access. Changes are not saved.'); return false; }
+  pending++; updateChip();
+  try {
+    const { error } = await fn();
+    if (error) throw error;
+    saveError = false; lastSaved = new Date();
+    return true;
+  } catch(e){
+    console.error(label, e);
+    saveError = true;
+    toast(label+' could not be saved: '+(e.message||'server error'));
+    return false;
+  } finally { pending--; updateChip(); }
+}
+window.addEventListener('beforeunload', e=>{ if (pending>0){ e.preventDefault(); e.returnValue=''; } });
+
+/* ================= edits ================= */
+function flushNote(){
+  if (pendingNote){ const p = pendingNote; pendingNote = null; applyEdit(p.id,'n',p.val,false); }
+}
+const COL = { s:'status', r:'owner', n:'note' };
+function applyEdit(id, field, val, rerender){
+  const r = state.recs[id] || (state.recs[id] = {});
+  if (r[field]===val && field!=='n') return;
+  r[field] = val; r.t = new Date().toISOString(); r.by = me ? me.email : '';
+  if (rerender){ renderRows(view); refreshCounts(view); }
+  const payload = { investor_id:id }; payload[COL[field]] = val;
+  persist('Change', ()=>sb.from('record_state').upsert(payload, { onConflict:'investor_id' }));
+}
+function ed(id, field, val){
+  if (mode==='readonly') { toast('View-only access. Changes are not saved.'); return; }
+  flushNote();
+  applyEdit(id, field, val, field==='s');
+}
+
+/* ================= realtime: other people's changes ================= */
+function subscribeRealtime(){
+  if (rtChannel || !sb) return;
+  rtChannel = sb.channel('xpfc-live')
+    .on('postgres_changes', { event:'*', schema:'public', table:'record_state' }, p=>{
+      const n = p.new; if (!n || !n.investor_id) return;
+      const cur = state.recs[n.investor_id] || {};
+      const typing = pendingNote && pendingNote.id===n.investor_id;
+      const nn = typing ? (cur.n||'') : (n.note||'');
+      if (cur.s===n.status && cur.r===n.owner && (cur.n||'')===nn) { cur.t = n.updated_at; cur.by = n.updated_by; return; }
+      state.recs[n.investor_id] = { s:n.status, r:n.owner, n:nn, t:n.updated_at, by:n.updated_by||'' };
+      if (view==='home') render(); else { renderRows(view); refreshCounts(view); if (sub[view]==='cal') renderCal(view); }
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'excluded' }, p=>{
+      const id = (p.new && p.new.investor_id) || (p.old && p.old.investor_id); if (!id) return;
+      const has = state.excluded.includes(id);
+      if (p.eventType==='INSERT' && !has) state.excluded.push(id);
+      else if (p.eventType==='DELETE' && has) state.excluded = state.excluded.filter(x=>x!==id);
+      else return;
+      render();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'meetings' }, p=>{
+      if (p.eventType==='INSERT'){ const m=p.new; if (!state.mtgs[m.region] || state.mtgs[m.region].some(x=>x.id===m.id)) return; state.mtgs[m.region].push({id:m.id,d:m.day,h:m.hour,inv:m.investor_id}); }
+      else if (p.eventType==='DELETE'){ const m=p.old; let hit=false; KEYS.forEach(k=>{ const b=state.mtgs[k].length; state.mtgs[k]=state.mtgs[k].filter(x=>x.id!==m.id); if (state.mtgs[k].length!==b) hit=true; }); if (!hit) return; }
+      else return;
+      if (view==='home') render(); else { refreshCounts(view); if (sub[view]==='cal') renderCal(view); }
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'investors' }, p=>{
+      if (p.eventType==='INSERT'){ const x=p.new; if (!x.custom || !state.added[x.region] || findRow(x.region, x.id)) return; const row=Object.assign({}, x.row||{}); row.i=x.id; row.custom=true; state.added[x.region].push(row); }
+      else if (p.eventType==='DELETE'){ const id=p.old && p.old.id; let hit=false; KEYS.forEach(k=>{ const b=state.added[k].length; state.added[k]=state.added[k].filter(r=>r.i!==id); if (state.added[k].length!==b) hit=true; }); if (!hit) return; }
+      else return;
+      render();
+    })
+    .subscribe();
+}
+
+/* ================= activity log per name ================= */
+async function loadActivity(id){
+  const host = document.getElementById('act-'+CSS.escape(id).replace(/\\/g,'')) || document.querySelector('[data-act="'+CSS.escape(id)+'"]');
+  if (!host) return;
+  const { data, error } = await sb.from('activity_log').select('at,user_email,action,field,old_value,new_value').eq('investor_id', id).order('at', { ascending:false }).limit(40);
+  if (error || !host.isConnected) return;
+  if (!data || !data.length){ host.innerHTML = '<div class="dl">Activity</div><div class="actl" style="padding:3px 0">No changes recorded yet.</div>'; return; }
+  const lab = v => v && STATUS[v] ? STATUS[v].l : (v||'');
+  host.innerHTML = '<div class="dl">Activity</div><ul class="actl">' + data.map(a=>{
+    const when = new Date(a.at).toLocaleString(undefined,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    let what;
+    if (a.action==='update' && a.field==='status') what = 'Status: '+esc(lab(a.old_value))+' to '+esc(lab(a.new_value));
+    else if (a.action==='update' && a.field==='owner') what = 'Owner: '+esc(a.old_value)+' to '+esc(a.new_value);
+    else if (a.action==='update' && a.field==='note') what = 'Note updated';
+    else what = esc(a.action);
+    return '<li><span class="at">'+esc(when)+'</span><span class="who">'+esc((a.user_email||'system').replace(/@.*$/,''))+'</span><span class="what">'+what+'</span></li>';
+  }).join('') + '</ul>';
+}
+
+/* ================= smart search ================= */
+function score(row, tokens){
+  let sc = 0;
+  const org=(row.o||'').toLowerCase(), aka=(row.aka||'').toLowerCase(), kct=(row.k||'').toLowerCase(),
+        typ=(row.y||'').toLowerCase(), cty=(row.c||'').toLowerCase(),
+        txt=((row.ra||'')+' '+(row.pf||'')).toLowerCase();
+  for (const t of tokens){
+    let best = 0;
+    if (org.startsWith(t)) best = 6;
+    else if (org.split(/\W+/).some(w=>w.startsWith(t))) best = 5;
+    else if (org.includes(t)) best = 4;
+    else if (aka.includes(t)) best = 3.5;
+    else if (kct.includes(t)) best = 3;
+    else if (typ.includes(t) || cty.includes(t)) best = 2;
+    else if (txt.includes(t)) best = 1;
+    if (!best) return 0;
+    sc += best;
+  }
+  return sc;
+}
+function smartSearch(q, keys){
+  const tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return [];
+  const out = [];
+  (keys||KEYS).forEach(k=>rowsOf(k).forEach(r=>{ const s = score(r,tokens); if (s>0) out.push({k, r, s}); }));
+  out.sort((a,b)=> b.s-a.s || a.r.o.localeCompare(b.r.o));
+  return out;
+}
+const gq = $('gq'), gp = $('gpanel');
+let gTimer = null;
+gq.addEventListener('input', ()=>{ clearTimeout(gTimer); gTimer = setTimeout(renderGlobalSearch, 160); });
+gq.addEventListener('focus', ()=>{ if (gq.value.trim().length>1) renderGlobalSearch(); });
+gq.addEventListener('keydown', e=>{
+  if (e.key==='Escape'){ closeGlobal(); gq.blur(); }
+  if (e.key==='ArrowDown'){ const f = gp.querySelector('.gres'); if (f){ e.preventDefault(); f.focus(); } }
+});
+gp.addEventListener('keydown', e=>{
+  const items = [...gp.querySelectorAll('.gres')];
+  const i = items.indexOf(document.activeElement);
+  if (e.key==='ArrowDown' && i<items.length-1){ e.preventDefault(); items[i+1].focus(); }
+  if (e.key==='ArrowUp'){ e.preventDefault(); if (i<=0) gq.focus(); else items[i-1].focus(); }
+  if (e.key==='Escape'){ closeGlobal(); gq.focus(); }
+});
+document.addEventListener('click', e=>{ if (!e.target.closest('.gsw')) closeGlobal(); });
+function closeGlobal(){ gp.classList.add('hide'); }
+function renderGlobalSearch(){
+  const q = gq.value.trim();
+  if (q.length<2){ closeGlobal(); return; }
+  const res = smartSearch(q).slice(0,14);
+  gp.classList.remove('hide');
+  if (!res.length){ gp.innerHTML = '<div class="gempty">No matches in the base for "'+esc(q)+'".</div>'; return; }
+  gp.innerHTML = '<div class="gph">'+res.length+' result'+(res.length>1?'s':'')+'</div>' + res.map(x=>{
+    const r=x.r, st=STATUS[rec(r.i).s];
+    const meta=[r.y,r.c].filter(Boolean).join(' · ');
+    const snip=(r.ra||r.pf||'').slice(0,110);
+    return '<button type="button" class="gres" data-k="'+x.k+'" data-id="'+esc(r.i)+'">'
+      + '<span class="r1"><span class="rgn">'+RGN[x.k]+'</span><b>'+esc(r.o)+'</b>'
+      + '<span class="lchip" style="margin-left:auto"><i style="background:'+st.c+'"></i>'+st.l+'</span></span>'
+      + (meta?'<span class="r2">'+esc(meta)+(r.k?' · '+esc(r.k):'')+'</span>':'')
+      + (snip?'<span class="r3">'+esc(snip)+'</span>':'')
+      + '</button>';
+  }).join('');
+  gp.querySelectorAll('.gres').forEach(b=>b.onclick=()=>{ closeGlobal(); gq.value=''; goTo(b.dataset.k, b.dataset.id); });
+}
+function goTo(k, id){
+  filters[k] = {q:'',tier:'',st:'',seg:'',resp:''};
+  sub[k] = 'targets';
+  expanded[k] = id;
+  view = k; render();
+  requestAnimationFrame(()=>{
+    const tr = document.querySelector('tr[data-id="'+CSS.escape(id)+'"]');
+    if (tr){ tr.scrollIntoView({block:'center'}); tr.classList.add('flash'); setTimeout(()=>tr.classList.remove('flash'), 1600); }
+  });
+}
+
+/* ================= rendering ================= */
+const NAVS = [['home','Overview'],['us','United States'],['ae','UAE'],['cn','China']];
+function setView(v){ flushNote(); view = v; render(); window.scrollTo({top:0}); }
+function render(){
+  flushNote();
+  $('nav').innerHTML = NAVS.map(n=>'<button type="button" data-v="'+n[0]+'" class="'+(view===n[0]?'on':'')+'">'+n[1]+'</button>').join('');
+  document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+  const v = $('view');
+  if (view==='home') { v.innerHTML = renderHome(); bindHome(); }
+  else { v.innerHTML = renderAgendaShell(view); bindAgenda(view); if (sub[view]==='targets'){ renderRows(view); } else { renderCal(view); } }
+}
+function daysTo(iso){ return Math.ceil((new Date(iso+'T00:00:00') - new Date())/86400000); }
+function cdown(a){ const d1=daysTo(a.start), d2=daysTo(a.end); if(d1>0) return 'in '+d1+' days'; if(d2>=0) return 'underway'; return 'completed'; }
+function tile(n,l){ return '<div class="tile"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
+function sbarHtml(rows, h){
+  const st = stats(rows); let out='<div class="sbar" style="height:'+(h||12)+'px" aria-hidden="true">';
+  for (const k in STATUS){ if(!st.c[k]) continue; out+='<i style="flex:'+st.c[k]+' 1 0;background:'+STATUS[k].c+'" title="'+esc(STATUS[k].l)+': '+st.c[k]+'"></i>'; }
+  return out+'</div>';
+}
+function legendHtml(rows){
+  const st = stats(rows);
+  return '<div class="legend">'+Object.keys(STATUS).map(k=>'<span class="lchip"><i style="background:'+STATUS[k].c+'"></i>'+STATUS[k].l+' <b>'+st.c[k]+'</b></span>').join('')+'</div>';
+}
+function funnelHtml(k){
+  const st = stats(rowsOf(k));
+  const stages = [['Targets',st.n,'var(--f1)'],['Contacted',st.contacted,'var(--f2)'],['Engaged',st.engaged,'var(--f3)'],['Booked',st.booked,'var(--f4)'],['Held',st.held,'var(--f5)']];
+  const max = st.n||1;
+  return '<div class="card fcard"><h4>'+esc(AG[k].short)+'</h4>'
+    + stages.map(s=>{
+      const pct = Math.round(s[1]/max*100);
+      const w = s[1]>0 ? Math.max(2, s[1]/max*100) : 0;
+      return '<div class="frow"><div class="fl">'+s[0]+'</div><div class="ftrack">'
+        + (s[1]>0 ? '<span class="fbar" style="width:'+w+'%;background:'+s[2]+'"></span>' : '<span class="fbar" style="width:2px;background:var(--line)"></span>')
+        + '</div><span class="fnum">'+s[1]+'<span>'+pct+'%</span></span></div>';
+    }).join('')
+    + '</div>';
+}
+function renderHome(){
+  const all = KEYS.reduce((a,k)=>a.concat(rowsOf(k)),[]);
+  const st = stats(all);
+  let h = '<div class="crumb">Overview</div>';
+  h += '<div class="card totrow">'
+    + tile(st.n,'Targets') + tile(st.contacted,'Contacted') + tile(st.booked,'Booked')
+    + tile(st.held,'Held') + tile(st.declined,'Declined')
+    + '</div>';
+  h += '<div class="cards">';
+  for (const k of KEYS){
+    const a = AG[k]; const s = stats(rowsOf(k));
+    h += '<div class="card acard" data-v="'+k+'" role="button" tabindex="0" aria-label="Open '+esc(a.short)+' agenda">'
+      + '<div class="top"><h3>'+esc(a.name)+'</h3><span class="cdown">'+cdown(a)+'</span></div>'
+      + '<div class="awin">'+esc(a.win)+'</div>'
+      + '<div class="anums">'
+      + '<div><div class="n">'+s.n+'</div><div class="l">Targets</div></div>'
+      + (s.tierA?'<div><div class="n">'+s.tierA+'</div><div class="l">Tier A</div></div>':'')
+      + '<div><div class="n">'+s.contacted+'</div><div class="l">Contacted</div></div>'
+      + '<div><div class="n">'+s.booked+'</div><div class="l">Booked</div></div>'
+      + '<div><div class="n">'+state.mtgs[k].length+'</div><div class="l">Scheduled</div></div>'
+      + '</div>'
+      + '<div class="aopen">Open agenda</div>'
+      + '</div>';
+  }
+  h += '</div>';
+  h += '<div class="secttl">Pipeline funnel</div><div class="funrow">'+KEYS.map(funnelHtml).join('')+'</div>';
+  h += '<div class="card planrow"><h4>Travel plan</h4><div class="plan">'
+    + '<div><div class="pt">New York, 19 to 23 October</div><div class="pd">LAVCA Week runs 19 to 21 October; Thursday 22 and Friday 23 reserved for office visits. Wave 1: 48 of the 60 intro emails sent between 30 Aug and 3 Sep; 12 held for a revised approach.</div></div>'
+    + '<div><div class="pt">Dubai, meetings from Monday 30 November</div><div class="pd">Suggested departure from Brazil on the Saturday 28 November overnight flight.</div></div>'
+    + '<div><div class="pt">China, week of 7 December</div><div class="pd">Depart the UAE on Friday 4 or Saturday 5 December, depending on preference and flight availability.</div></div>'
+    + '</div></div>';
+  return h;
+}
+function bindHome(){
+  document.querySelectorAll('.acard').forEach(c=>{
+    c.onclick = ()=>setView(c.dataset.v);
+    c.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setView(c.dataset.v);} };
+  });
+}
+
+/* ---------- agenda shell ---------- */
+function segLabel(k){ return k==='us' ? 'sections' : (k==='ae' ? 'cities' : 'sources'); }
+function renderAgendaShell(k){
+  const a = AG[k]; const f = filters[k];
+  const rows = rowsOf(k);
+  const segs = [...new Set(rows.map(x=>x.g).filter(Boolean))];
+  const tiers = [...new Set(rows.map(x=>x.t).filter(Boolean))].sort();
+  let h = '<div class="crumb">Agenda</div>';
+  h += '<div class="card ahead"><div class="row1"><h2>'+esc(a.name)+'</h2><span class="win">'+esc(a.win)+'</span></div>'
+    + (a.note?'<div class="note">'+esc(a.note)+'</div>':'')
+    + '<div class="kpis" id="kpis"></div>'
+    + '<div class="abar" id="abar"></div></div>';
+  h += '<div class="subtabs" role="tablist">'
+    + '<button type="button" data-t="targets" role="tab">Targets</button>'
+    + '<button type="button" data-t="cal" role="tab">Calendar<span id="calcount"></span></button>'
+    + '</div>';
+  h += '<div id="subzone">';
+  if (sub[k]==='targets'){
+    h += '<div class="fbarrow">'
+      + '<input type="search" id="fq" placeholder="Search name, contact, type" value="'+esc(f.q)+'" aria-label="Filter this list">'
+      + (tiers.length?'<select id="ftier" aria-label="Tier filter"><option value="">All tiers</option>'+tiers.map(t=>'<option'+(f.tier===t?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select>':'')
+      + '<select id="fst" aria-label="Status filter"><option value="">All statuses</option>'+Object.keys(STATUS).map(s=>'<option value="'+s+'"'+(f.st===s?' selected':'')+'>'+STATUS[s].l+'</option>').join('')+'</select>'
+      + (segs.length>1?'<select id="fseg" aria-label="Segment filter"><option value="">All '+segLabel(k)+'</option>'+segs.map(s=>'<option'+(f.seg===s?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select>':'')
+      + '<select id="fresp" aria-label="Owner filter"><option value="">All owners</option>'+OWNERS.map(o=>'<option'+(f.resp===o?' selected':'')+'>'+o+'</option>').join('')+'</select>'
+      + '<button type="button" class="clr" id="fclr">Clear</button>'
+      + '<span class="cnt" id="fcnt"></span>'
+      + '<button type="button" class="btn pri" id="addbtn">Add investor</button>'
+      + '</div>'
+      + '<div class="card tcard"><div class="tscroll" id="tzone"></div></div>'
+      + '<div id="removedzone"></div>';
+  } else {
+    h += '<div id="calzone"></div>';
+  }
+  h += '</div>';
+  return h;
+}
+function bindAgenda(k){
+  refreshCounts(k);
+  document.querySelectorAll('.subtabs button').forEach(b=>{
+    b.classList.toggle('on', sub[k]===b.dataset.t);
+    b.setAttribute('aria-selected', sub[k]===b.dataset.t ? 'true':'false');
+    b.onclick = ()=>{ flushNote(); sub[k]=b.dataset.t; render(); };
+  });
+  const f = filters[k];
+  if (sub[k]!=='targets') return;
+  const rr = ()=>{ renderRows(k); };
+  $('fq').oninput = e=>{ f.q=e.target.value; clearTimeout(bindAgenda._t); bindAgenda._t=setTimeout(rr,180); };
+  if ($('ftier')) $('ftier').onchange = e=>{ f.tier=e.target.value; rr(); };
+  $('fst').onchange = e=>{ f.st=e.target.value; rr(); };
+  if ($('fseg')) $('fseg').onchange = e=>{ f.seg=e.target.value; rr(); };
+  $('fresp').onchange = e=>{ f.resp=e.target.value; rr(); };
+  $('fclr').onclick = ()=>{ filters[k]={q:'',tier:'',st:'',seg:'',resp:''}; render(); };
+  $('addbtn').onclick = ()=>openAddModal(k);
+}
+function refreshCounts(k){
+  if (view!==k) return;
+  const s = stats(rowsOf(k));
+  if ($('kpis')) $('kpis').innerHTML =
+    tile(s.n,'Targets') + (s.tierA?tile(s.tierA,'Tier A'):'')
+    + tile(s.contacted,'Contacted') + tile(s.engaged,'Engaged')
+    + tile(s.booked,'Booked') + tile(s.held,'Held');
+  if ($('abar')) $('abar').innerHTML = sbarHtml(rowsOf(k)) + legendHtml(rowsOf(k));
+  if ($('calcount')) $('calcount').textContent = state.mtgs[k].length ? ' ('+state.mtgs[k].length+')' : '';
+}
+
+/* ---------- targets table ---------- */
+function applyFilters(k){
+  const f = filters[k]; const q = f.q.trim().toLowerCase();
+  let rows = rowsOf(k).filter(x=>{
+    const r = rec(x.i);
+    if (f.tier && x.t!==f.tier) return false;
+    if (f.st && r.s!==f.st) return false;
+    if (f.seg && x.g!==f.seg) return false;
+    if (f.resp && r.r!==f.resp) return false;
+    if (q){ const hay=(x.o+' '+(x.aka||'')+' '+(x.k||'')+' '+(x.y||'')+' '+(x.c||'')).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+    return true;
+  });
+  const s = sorts[k]; const dir = s.dir;
+  const tierOrd = t => ({'A':0,'B':1,'C':2,'S/O':3}[t] ?? 9);
+  rows.sort((a,b)=>{
+    let va, vb;
+    if (s.col==='org'){ va=a.o.toLowerCase(); vb=b.o.toLowerCase(); }
+    else if (s.col==='status'){ va=RANK[rec(a.i).s]; vb=RANK[rec(b.i).s]; }
+    else { va=tierOrd(a.t); vb=tierOrd(b.t); }
+    if (va<vb) return -1*dir; if (va>vb) return 1*dir;
+    return a.o.localeCompare(b.o);
+  });
+  return rows;
+}
+function stSel(x){
+  const r = rec(x.i); const st = STATUS[r.s];
+  return '<span class="stwrap" style="--sc:'+st.c+';--st:'+st.t+'"><i></i>'
+    + '<select class="stsel" data-id="'+esc(x.i)+'" aria-label="Status for '+esc(x.o)+'">'
+    + Object.keys(STATUS).map(s=>'<option value="'+s+'"'+(s===r.s?' selected':'')+'>'+STATUS[s].l+'</option>').join('')
+    + '</select></span>';
+}
+function rsSel(x){
+  const r = rec(x.i);
+  return '<select class="rsel rselc" data-id="'+esc(x.i)+'" aria-label="Owner for '+esc(x.o)+'">'
+    + OWNERS.map(o=>'<option'+(o===r.r?' selected':'')+'>'+o+'</option>').join('')+'</select>';
+}
+function dItem(l, v, html){ if(!v) return ''; return '<div class="dit"><div class="dl">'+l+'</div><div class="dv">'+(html||esc(v))+'</div></div>'; }
+function dPar(l, v){ if(!v) return ''; return '<p class="dpar"><b>'+l+'</b>'+esc(v)+'</p>'; }
+function detailHtml(k, x){
+  const r = rec(x.i);
+  let g = '<div class="dgrid">'
+    + dItem('Email', x.e, x.e ? esc(x.e)+' <button type="button" class="cpy" data-c="'+esc(x.e)+'">Copy</button>' : '')
+    + dItem('Phone', x.p)
+    + dItem('LinkedIn', x.li, x.li?'<a href="'+esc(x.li)+'" target="_blank" rel="noopener">Profile</a>':'')
+    + dItem('AUM', fmtAUM(x.a))
+    + dItem('Ticket (USD m)', x.tk)
+    + dItem('Investment mode', x.m)
+    + dItem('LatAm appetite', x.la)
+    + dItem('Infrastructure signal', x.is)
+    + dItem('Relationship', x.rs)
+    + dItem('Infra funds on record', x.nf)
+    + dItem('Also known as', x.aka)
+    + dItem('Secondary contact', x.sc)
+    + dItem('Website', x.w, x.w?'<a href="'+esc(/^https?:/.test(x.w)?x.w:'https://'+x.w)+'" target="_blank" rel="noopener">'+esc(x.w)+'</a>':'')
+    + '</div>';
+  g += dPar('Angle', x.ra);
+  g += dPar('Profile', x.pf);
+  if (x.bf && x.bfa) g += dPar('Breakfast invite', x.bfa);
+  g += dPar('How this name reached the list', x.sr);
+  g += '<div class="nwrap"><div class="dl" style="margin-bottom:4px">Notes</div>'
+    + '<textarea class="notea" data-id="'+esc(x.i)+'" placeholder="Add a note for the team"'+(mode==='readonly'?' disabled':'')+'>'+esc(r.n)+'</textarea></div>';
+  g += '<div class="dfoot">'
+    + (mode!=='readonly' ? '<button type="button" class="btn warn exbtn" data-id="'+esc(x.i)+'">Remove from list</button>' : '')
+    + (r.t ? '<span class="dmeta">Last updated '+esc(new Date(r.t).toLocaleString())+(r.by && !/^seed/.test(r.by) ? ' by '+esc(r.by.replace(/@.*$/,'')) : '')+'</span>' : '')
+    + '</div>';
+  g += '<div class="act" data-act="'+esc(x.i)+'"><div class="dl">Activity</div><div class="actl" style="padding:3px 0">Loading...</div></div>';
+  return g;
+}
+function renderRows(k){
+  if (view!==k || sub[k]!=='targets' || !$('tzone')) return;
+  flushNote();
+  const rows = applyFilters(k);
+  const f = filters[k]; const sc = sorts[k];
+  const filtered = f.q||f.tier||f.st||f.seg||f.resp;
+  $('fcnt').textContent = rows.length+' of '+rowsOf(k).length;
+  const th = (id,lab) => '<th class="sortable" data-s="'+id+'" aria-sort="'+(sc.col===id?(sc.dir>0?'ascending':'descending'):'none')+'">'+lab+(sc.col===id?(sc.dir>0?' &#8595;':' &#8593;'):'')+'</th>';
+  const cols = k==='cn' ? 8 : 7;
+  let h = '<table><thead><tr>'
+    + (k==='cn' ? '<th>Source</th>' : th('tier','Tier'))
+    + th('org','Organization')
+    + '<th>Type</th><th>'+(k==='cn'?'HQ':'City')+'</th><th>Contact</th>'
+    + (k==='cn'?'<th style="text-align:right">Infra funds</th>':'')
+    + th('status','Status') + '<th>Owner</th>'
+    + '</tr></thead><tbody>';
+  if (!rows.length){
+    h += '<tr class="emptyrow"><td colspan="'+cols+'">No names match the current filters.'+(filtered?' <button type="button" id="eclr">Clear filters</button>':'')+'</td></tr>';
+  }
+  for (const x of rows){
+    const open = expanded[k]===x.i;
+    h += '<tr class="rrow" data-id="'+esc(x.i)+'" tabindex="0" aria-expanded="'+(open?'true':'false')+'">'
+      + (k==='cn'
+          ? '<td><span class="tag src">'+esc(x.gShort||'')+'</span></td>'
+          : '<td>'+(x.t?'<span class="tier '+esc(x.t)+'">'+esc(x.t)+'</span>':'')+'</td>')
+      + '<td class="org">'+esc(x.o)
+      + (x.custom?'<span class="tag">Added</span>':'')
+      + (x.g && k==='us' ? '<span class="tag">'+esc(x.gShort||x.g)+'</span>':'')
+      + (x.bf?'<span class="tag bf">Breakfast</span>':'')
+      + '</td>'
+      + '<td>'+(x.y?esc(x.y):'<span class="mutcell">-</span>')+'</td>'
+      + '<td>'+(x.c?esc(x.c):'<span class="mutcell">-</span>')+'</td>'
+      + '<td>'+esc(x.k||'')+(x.kt?'<span class="sub2">'+esc(x.kt)+'</span>':'')+'</td>'
+      + (k==='cn'?'<td class="num">'+(x.nf?esc(x.nf):'<span class="mutcell">-</span>')+'</td>':'')
+      + '<td>'+stSel(x)+'</td>'
+      + '<td>'+rsSel(x)+'</td>'
+      + '</tr>';
+    if (open) h += '<tr class="drow"><td colspan="'+cols+'">'+detailHtml(k,x)+'</td></tr>';
+  }
+  h += '</tbody></table>';
+  $('tzone').innerHTML = h;
+  bindRows(k);
+  renderRemoved(k);
+  if (expanded[k]) loadActivity(expanded[k]);
+}
+function bindRows(k){
+  const z = $('tzone');
+  if ($('eclr')) $('eclr').onclick = ()=>{ filters[k]={q:'',tier:'',st:'',seg:'',resp:''}; render(); };
+  z.querySelectorAll('thead th.sortable').forEach(t=>t.onclick=()=>{
+    const s = sorts[k];
+    if (s.col===t.dataset.s) s.dir*=-1; else { s.col=t.dataset.s; s.dir=1; }
+    renderRows(k);
+  });
+  const toggle = tr => { flushNote(); const id = tr.dataset.id; expanded[k] = expanded[k]===id ? null : id; renderRows(k); };
+  z.querySelectorAll('tr.rrow').forEach(tr=>{
+    tr.onclick = ev=>{ if (ev.target.closest('select,button,a,textarea,input')) return; toggle(tr); };
+    tr.onkeydown = ev=>{ if ((ev.key==='Enter'||ev.key===' ') && !ev.target.closest('select,button,a,textarea,input')){ ev.preventDefault(); toggle(tr); } };
+  });
+  z.querySelectorAll('.stsel').forEach(s=>s.onchange = e=>ed(s.dataset.id,'s',e.target.value));
+  z.querySelectorAll('.rselc').forEach(s=>s.onchange = e=>ed(s.dataset.id,'r',e.target.value));
+  z.querySelectorAll('.notea').forEach(t=>t.oninput = ()=>{
+    if (mode==='readonly') return;
+    pendingNote = {id:t.dataset.id, val:t.value.trim()};
+    clearTimeout(t._x); t._x=setTimeout(()=>{ if(pendingNote && pendingNote.id===t.dataset.id){ const p=pendingNote; pendingNote=null; applyEdit(p.id,'n',p.val,false); } },500);
+  });
+  z.querySelectorAll('.cpy').forEach(b=>b.onclick = async ()=>{
+    try { await navigator.clipboard.writeText(b.dataset.c); toast('Email copied'); }
+    catch(e){ toast('Could not copy on this browser'); }
+  });
+  z.querySelectorAll('.exbtn').forEach(b=>b.onclick = async ()=>{
+    if (mode==='readonly') return;
+    const id = b.dataset.id; const row = findRow(k,id);
+    flushNote();
+    state.excluded.push(id); expanded[k]=null;
+    renderRows(k); refreshCounts(k);
+    const ok = await persist('Removal', ()=>sb.from('excluded').insert({ investor_id:id }));
+    if (ok) toast((row?row.o:'Name')+' removed from the list');
+    else { state.excluded = state.excluded.filter(i=>i!==id); renderRows(k); refreshCounts(k); }
+  });
+}
+function renderRemoved(k){
+  const z = $('removedzone'); if (!z) return;
+  const ex = state.excluded.map(id=>({id, row:findRow(k,id)})).filter(x=>x.row);
+  if (!ex.length){ z.innerHTML=''; return; }
+  z.innerHTML = '<details class="removedbox"><summary>Removed names ('+ex.length+')</summary>'
+    + ex.map(x=>'<div class="rrow2"><b>'+esc(x.row.o)+'</b><span>'+esc(x.row.y||'')+'</span>'
+      + (mode!=='readonly'?'<button type="button" data-id="'+esc(x.id)+'">Restore</button>':'')+'</div>').join('')
+    + '</details>';
+  z.querySelectorAll('button[data-id]').forEach(b=>b.onclick=async ()=>{
+    const id = b.dataset.id;
+    state.excluded = state.excluded.filter(i=>i!==id);
+    renderRows(k); refreshCounts(k);
+    const ok = await persist('Restore', ()=>sb.from('excluded').delete().eq('investor_id', id));
+    if (ok) toast('Restored'); else { state.excluded.push(id); renderRows(k); refreshCounts(k); }
+  });
+}
+
+/* ---------- add investor ---------- */
+function openAddModal(k){
+  if (mode==='readonly'){ toast('View-only access. Changes are not saved.'); return; }
+  const host = $('modalhost');
+  host.innerHTML = '<div class="ovl" id="ovl"><div class="modal" role="dialog" aria-modal="true" aria-label="Add investor">'
+    + '<div class="mh"><h3>Add investor to '+esc(AG[k].short)+'</h3><button type="button" class="mxx" id="mclose">Close</button></div>'
+    + '<div class="mb"><div class="frm">'
+    + '<div class="full"><label for="ai_o">Organization (required)</label><input type="text" id="ai_o"></div>'
+    + '<div><label for="ai_t">Tier</label><select id="ai_t"><option value="">None</option><option>A</option><option>B</option><option>C</option></select></div>'
+    + '<div><label for="ai_y">Investor type</label><input type="text" id="ai_y"></div>'
+    + '<div><label for="ai_c">City</label><input type="text" id="ai_c"></div>'
+    + '<div><label for="ai_k">Contact</label><input type="text" id="ai_k"></div>'
+    + '<div><label for="ai_kt">Contact title</label><input type="text" id="ai_kt"></div>'
+    + '<div><label for="ai_e">Email</label><input type="email" id="ai_e"></div>'
+    + '<div><label for="ai_p">Phone</label><input type="text" id="ai_p"></div>'
+    + '</div><div class="mferr" id="aierr"></div></div>'
+    + '<div class="mfoot"><button type="button" class="btn gho" id="mcancel">Cancel</button><button type="button" class="btn pri" id="msave">Add investor</button></div>'
+    + '</div></div>';
+  const close = ()=>{ host.innerHTML=''; };
+  $('mclose').onclick = close; $('mcancel').onclick = close;
+  $('ovl').addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
+  $('ovl').addEventListener('mousedown', e=>{ if(e.target.id==='ovl') close(); });
+  $('ai_o').focus();
+  $('msave').onclick = ()=>{
+    const o = $('ai_o').value.trim();
+    if (!o){ $('aierr').textContent='Organization name is required.'; $('ai_o').focus(); return; }
+    const dup = rowsOf(k).find(r=>r.o.toLowerCase()===o.toLowerCase());
+    if (dup){ $('aierr').textContent='"'+dup.o+'" is already on this list.'; return; }
+    const id = 'x-'+k+'-'+o.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)+'-'+Date.now().toString(36);
+    const row = { i:id, o, t:$('ai_t').value, y:$('ai_y').value.trim(), c:$('ai_c').value.trim(),
+      k:$('ai_k').value.trim(), kt:$('ai_kt').value.trim(), e:$('ai_e').value.trim(), p:$('ai_p').value.trim(),
+      g:'', gShort:'', sr:'Added manually in the platform', custom:true };
+    $('msave').disabled = true;
+    persist('Add investor', ()=>sb.from('investors').insert({ id, region:k, row, custom:true, sort_order:9000 })).then(ok=>{
+      if (!ok) { $('msave').disabled = false; $('aierr').textContent='Could not save this investor. Try again.'; return; }
+      state.added[k].push(row); close(); render(); toast(o+' added');
+    });
+  };
+}
+
+/* ---------- calendar ---------- */
+function agDays(k){
+  const out = []; const d0 = new Date(AG[k].start+'T00:00:00');
+  const pad = n=>String(n).padStart(2,'0');
+  for (let i=0;i<5;i++){ const d = new Date(d0.getTime()+i*86400000);
+    out.push({ iso: d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),
+      wd: d.toLocaleDateString('en-GB',{weekday:'short'}),
+      lab: d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) });
+  }
+  return out;
+}
+function mtgOf(k,d,h){ return state.mtgs[k].find(m=>m.d===d && m.h===h); }
+function renderCal(k){
+  const z = $('calzone'); if (!z) return;
+  const days = agDays(k);
+  const n = state.mtgs[k].length;
+  let h = '<div class="calhead"><span class="cnt">'+(n? n+' meeting'+(n>1?'s':'')+' scheduled.' : 'No meetings scheduled yet.')+' Click a slot to book an investor.</span></div>';
+  h += '<div class="calscroll"><div class="cal">';
+  h += '<div></div>' + days.map(d=>'<div class="dh"><div class="d1">'+d.wd+' '+d.lab+'</div>'
+      + (k==='ae' && d.wd==='Fri' ? '<div class="d3">Possible departure day</div>' : '')
+      + '</div>').join('');
+  for (const hh of HOURS){
+    h += '<div class="hh">'+hh+'</div>';
+    for (const d of days){
+      const m = mtgOf(k,d.iso,hh);
+      if (m){
+        const row = findRow(k,m.inv);
+        const st = row ? STATUS[rec(row.i).s] : STATUS.not_started;
+        h += '<div class="slot"><div class="mtg" style="--sc:'+st.c+'">'
+          + '<div class="mo"><i></i><span>'+esc(row?row.o:'(removed name)')+'</span></div>'
+          + (row && row.k ? '<div class="mc">'+esc(row.k)+'</div>':'')
+          + (mode!=='readonly'?'<button type="button" class="mx" data-m="'+esc(m.id)+'" aria-label="Remove meeting">&#215;</button>':'')
+          + '</div></div>';
+      } else {
+        h += '<div class="slot">'+(mode!=='readonly'
+          ? '<button type="button" class="addb" data-d="'+d.iso+'" data-h="'+hh+'" aria-label="Book '+d.wd+' '+d.lab+' at '+hh+'">+</button>'
+          : '')+'</div>';
+      }
+    }
+  }
+  h += '</div></div>';
+  z.innerHTML = h;
+  z.querySelectorAll('.addb').forEach(b=>b.onclick=()=>openPicker(k,b.dataset.d,b.dataset.h));
+  z.querySelectorAll('.mx').forEach(b=>b.onclick=async ()=>{
+    const mid = b.dataset.m; const gone = state.mtgs[k].find(m=>m.id===mid);
+    state.mtgs[k] = state.mtgs[k].filter(m=>m.id!==mid);
+    renderCal(k); refreshCounts(k);
+    const ok = await persist('Meeting removal', ()=>sb.from('meetings').delete().eq('id', mid));
+    if (ok) toast('Meeting removed'); else if (gone) { state.mtgs[k].push(gone); renderCal(k); refreshCounts(k); }
+  });
+}
+function openPicker(k,d,hh){
+  if (mode==='readonly') return;
+  const host = $('modalhost');
+  const dLab = new Date(d+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  host.innerHTML = '<div class="ovl" id="ovl"><div class="modal pick" role="dialog" aria-modal="true" aria-label="Book a meeting">'
+    + '<div class="mh"><h3>Book '+esc(dLab)+' at '+esc(hh)+'</h3><button type="button" class="mxx" id="mclose">Close</button></div>'
+    + '<div class="mb"><input type="search" id="pq" placeholder="Search the '+esc(AG[k].short)+' base" autocomplete="off" aria-label="Search investors">'
+    + '<div id="plist"></div></div>'
+    + '</div></div>';
+  const close = ()=>{ host.innerHTML=''; };
+  $('mclose').onclick = close;
+  $('ovl').addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
+  $('ovl').addEventListener('mousedown', e=>{ if(e.target.id==='ovl') close(); });
+  const list = $('plist'); const pq = $('pq');
+  const booked = new Set(state.mtgs[k].map(m=>m.inv));
+  const paint = ()=>{
+    const q = pq.value.trim();
+    const res = q.length>=2 ? smartSearch(q,[k]).slice(0,20) : rowsOf(k).slice().sort((a,b)=>RANK[rec(b.i).s]-RANK[rec(a.i).s]).slice(0,20).map(r=>({k,r}));
+    list.innerHTML = (q.length<2?'<div class="gph">Suggestions</div>':'')
+      + (res.length ? res.map(x=>{
+        const st = STATUS[rec(x.r.i).s];
+        return '<button type="button" class="pres" data-id="'+esc(x.r.i)+'"><i style="background:'+st.c+'"></i>'
+          + '<span><span class="po">'+esc(x.r.o)+'</span><br><span class="pm">'+esc([x.r.y,x.r.c].filter(Boolean).join(' · ')||st.l)+'</span></span>'
+          + (booked.has(x.r.i)?'<span class="pw">Already scheduled</span>':'')
+          + '</button>';
+      }).join('') : '<div class="gempty">No matches in the '+esc(AG[k].short)+' base.</div>');
+    list.querySelectorAll('.pres').forEach(b=>b.onclick=async ()=>{
+      const m = {id:'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), d, h:hh, inv:b.dataset.id};
+      if (mtgOf(k,d,hh)) { close(); renderCal(k); toast('That slot was just taken by someone else'); return; }
+      state.mtgs[k].push(m);
+      close(); renderCal(k); refreshCounts(k);
+      const row = findRow(k,b.dataset.id);
+      const ok = await persist('Booking', ()=>sb.from('meetings').insert({ id:m.id, region:k, day:d, hour:hh, investor_id:m.inv }));
+      if (ok) toast((row?row.o:'Investor')+' booked for '+dLab+' '+hh);
+      else { state.mtgs[k] = state.mtgs[k].filter(x=>x.id!==m.id); renderCal(k); refreshCounts(k); }
+    });
+  };
+  pq.oninput = ()=>{ clearTimeout(pq._x); pq._x=setTimeout(paint,140); };
+  paint(); pq.focus();
+}
+
+boot();
+</script>
+</body>
+</html>
