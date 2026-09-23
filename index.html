@@ -749,7 +749,7 @@ function repaint(){
 }
 function applyEdit(id, field, val, rerender){
   const r = state.recs[id] || (state.recs[id] = {});
-  if (r[field]===val && field!=='n') return;
+  if ((r[field]||'')===(val||'')) return;
   r[field] = val; r.t = new Date().toISOString(); r.by = me ? me.email : '';
   if (rerender) repaint();
   const payload = { investor_id:id }; payload[COL[field]] = val;
@@ -1393,10 +1393,14 @@ function bindCard(k, x){
   $('dclose').onclick = closeCard;
   d.querySelectorAll('.stsel').forEach(s=>s.onchange = e=>ed(s.dataset.id,'s',e.target.value));
   d.querySelectorAll('.rselc').forEach(s=>s.onchange = e=>ed(s.dataset.id,'r',e.target.value));
-  d.querySelectorAll('.notea').forEach(t=>t.oninput = ()=>{
-    if (mode==='readonly') return;
-    pendingNote = {id:t.dataset.id, val:t.value.trim()};
-    clearTimeout(t._x); t._x=setTimeout(()=>{ if(pendingNote && pendingNote.id===t.dataset.id){ const p=pendingNote; pendingNote=null; applyEdit(p.id,'n',p.val,false); } },500);
+  d.querySelectorAll('.notea').forEach(t=>{
+    const save = ()=>{ clearTimeout(t._x); if (pendingNote && pendingNote.id===t.dataset.id){ const p=pendingNote; pendingNote=null; applyEdit(p.id,'n',p.val,false); } };
+    t.oninput = ()=>{
+      if (mode==='readonly') return;
+      pendingNote = {id:t.dataset.id, val:t.value.trim()};
+      clearTimeout(t._x); t._x=setTimeout(save, 1500);
+    };
+    t.onblur = save;
   });
   d.querySelectorAll('.cpy').forEach(b=>b.onclick = async ()=>{ try { await navigator.clipboard.writeText(b.dataset.c); toast('Email copied'); } catch(e){ toast('Could not copy on this browser'); } });
   d.querySelectorAll('.dget').forEach(b=>b.onclick = ()=>downloadDoc(b.dataset.doc));
