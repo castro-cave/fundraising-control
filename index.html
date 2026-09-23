@@ -196,7 +196,6 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .rsel{border:0;border-radius:999px;background:var(--fill);font-size:12px;font-weight:600;padding:5px 7px}
 .emptyrow td{padding:26px 16px;color:var(--mut);font-size:13px;border-bottom:0}
 .emptyrow button{border:0;background:none;color:var(--accent);font-weight:600;padding:0 4px}
-tr.drow>td{background:#f8fafd;padding:16px 20px 18px}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 26px;margin-bottom:12px}
 .dl{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
 .dit .dv{font-size:13px;margin-top:2px;overflow-wrap:anywhere}
@@ -258,6 +257,92 @@ tr.drow>td{background:#f8fafd;padding:16px 20px 18px}
 .pres .po{font-weight:600;font-size:13px}
 .pres .pm{font-size:11.5px;color:var(--mut)}
 .pres .pw{margin-left:auto;font-size:10px;font-weight:600;color:#8a5a00;background:#fdf4dd;border-radius:5px;padding:2px 6px;white-space:nowrap}
+
+/* ================= investor card (slide-over) ================= */
+.dovl{position:fixed;inset:0;background:rgba(20,26,34,.38);z-index:65;display:flex;justify-content:flex-end;opacity:0;transition:opacity .18s}
+.dovl.in{opacity:1}
+.drawer{width:min(700px,100%);height:100%;background:#fff;box-shadow:-18px 0 50px rgba(10,20,35,.28);display:flex;flex-direction:column;transform:translateX(40px);transition:transform .22s cubic-bezier(.2,.7,.2,1)}
+.dovl.in .drawer{transform:none}
+.dhead{padding:18px 24px 14px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.dhead .dt{flex:1;min-width:0}
+.dhead h3{margin:0;font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.dhead .dsub{font-size:12.5px;color:var(--mut);margin-top:3px}
+.dhead .dx{border:0;background:var(--fill);border-radius:8px;font-size:13px;padding:6px 11px;color:var(--mut);white-space:nowrap}
+.dhead .dx:hover{background:#e6ebf2;color:var(--ink)}
+.dbody{padding:6px 24px 30px;overflow:auto;flex:1}
+.dsec{padding:16px 0;border-bottom:1px solid var(--row)}
+.dsec:last-child{border-bottom:0}
+.dsh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dsh .dl{flex:1}
+.dsh .lnk{border:0;background:none;color:var(--accent);font-weight:600;font-size:12.5px;padding:2px 4px}
+.dsh .lnk:hover{text-decoration:underline}
+.drow2{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.drow2 .dl{margin-bottom:4px}
+.ctc{display:grid;grid-template-columns:1fr 1fr;gap:8px 22px;font-size:13px}
+.ctc .cn{grid-column:1/-1;font-size:15px;font-weight:600}
+.ctc .cn .sub2{font-size:12.5px}
+.ctc .cv{overflow-wrap:anywhere}
+.ctc .cv .dl{margin-bottom:1px}
+.corig{font-size:11.5px;color:var(--soft);margin-top:8px}
+.corig button{border:0;background:none;color:var(--accent);font-weight:600;font-size:11.5px;padding:0 3px}
+.frm2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.frm2 .full{grid-column:1/-1}
+.frm2 label{display:block;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+.frm2 input,.frm2 select{width:100%;border:0;border-radius:8px;padding:9px 11px;background:var(--fill)}
+.frm2 input:focus,.frm2 select:focus{outline:none;box-shadow:0 0 0 2px var(--accent)}
+.frm2 .acts{grid-column:1/-1;display:flex;gap:8px;align-items:center;margin-top:2px}
+.frm2 .acts .hint{font-size:11.5px;color:var(--soft);margin-left:auto}
+.mtgsum{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
+.mtgsum .ckind{margin:0}
+.ckind{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:5px;padding:2px 7px;background:var(--accent-soft);color:var(--brand)}
+.ckind.call{background:#fdf4dd;color:#8a5a00}
+.ckind.inp{background:#e4f6ef;color:#0c6b4a}
+.ckind.slot{background:var(--fill);color:var(--mut)}
+.dnote{font-size:12px;color:var(--soft);margin-top:6px}
+.tag.ed{background:#eef7e9;color:#2e6b2a}
+
+/* ================= confirmed meetings block ================= */
+.confbox{padding:16px 20px 14px;margin:0 0 16px;border-left:4px solid var(--s-con)}
+.confbox .ch{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.confbox h4{margin:0;font-size:13.5px;font-weight:700}
+.confbox .cc{font-size:11px;font-weight:700;background:#e4f6ef;color:#0c6b4a;border-radius:999px;padding:3px 9px;font-variant-numeric:tabular-nums}
+.confbox .cempty{font-size:12.5px;color:var(--mut)}
+.conflist{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:8px}
+.confit{display:flex;gap:10px;align-items:flex-start;text-align:left;border:0;background:var(--fill);border-radius:9px;padding:10px 12px;cursor:pointer}
+.confit:hover{background:#e6ebf2}
+.confit i{width:9px;height:9px;border-radius:50%;flex:none;margin-top:5px;background:var(--sc)}
+.confit .co{display:block;font-weight:600;font-size:13px;line-height:1.3}
+.confit .cm{display:block;font-size:11.5px;color:var(--mut);margin-top:2px}
+.confit .cw{font-size:12px;font-weight:600;color:var(--ink);margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.confit .cw .ckind{font-size:9.5px}
+.confit .rgn{font-size:9.5px;font-weight:700;letter-spacing:.05em;border-radius:4px;padding:2px 5px;background:#fff;color:var(--mut);margin-left:auto}
+
+/* ================= timeline ================= */
+.tlbox{padding:16px 20px 18px;margin-top:16px}
+.tlbox .ch{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.tlbox h4{margin:0;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--soft);flex:1}
+.tlleg{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.tlscroll{overflow-x:auto;padding-bottom:4px}
+.tl{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr);gap:0;min-width:100%}
+.tlm{position:relative;padding:0 6px 6px;border-left:1px dashed var(--line)}
+.tlm:first-child{border-left:0}
+.tlm .mh{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);padding:2px 4px 8px}
+.tlm .rail{position:relative;height:22px;margin-bottom:8px}
+.tlm .rail:before{content:"";position:absolute;left:0;right:0;top:10px;height:3px;background:var(--line);border-radius:2px}
+.tlm.past .rail:before{background:#cfd8e3}
+.tldot{position:absolute;top:5px;width:13px;height:13px;border-radius:50%;background:var(--sc);border:2px solid #fff;box-shadow:0 0 0 1px rgba(18,28,45,.12);transform:translateX(-50%)}
+.tltoday{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--bad);transform:translateX(-50%)}
+.tltoday:after{content:"Today";position:absolute;top:-16px;left:4px;font-size:9.5px;font-weight:700;color:var(--bad);letter-spacing:.04em}
+.tlchip{display:flex;gap:8px;align-items:flex-start;border-radius:8px;padding:6px 8px;background:var(--fill);margin-bottom:5px;font-size:12px;line-height:1.3;position:relative}
+.tlchip i{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px;background:var(--sc)}
+.tlchip .td{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+.tlchip .tt{color:var(--ink)}
+.tlchip .tt.lnk{cursor:pointer}
+.tlchip .tt.lnk:hover{color:var(--brand);text-decoration:underline}
+.tlchip .tx{position:absolute;top:3px;right:4px;border:0;background:none;color:var(--soft);font-size:12px;line-height:1;padding:2px 4px;border-radius:4px;opacity:0}
+.tlchip:hover .tx{opacity:1}
+.tlchip .tx:hover{background:#fff;color:var(--bad)}
+.tlempty{font-size:12px;color:var(--soft);padding:2px 4px}
 
 #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:13px;border-radius:999px;padding:9px 18px;opacity:0;pointer-events:none;transition:opacity .18s;z-index:90;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 #toast.on{opacity:.97}
@@ -329,6 +414,7 @@ tr.drow>td{background:#f8fafd;padding:16px 20px 18px}
   <main id="view"></main>
   <footer>XP Asset Management, the asset management division of XP Inc. Working tool for the XP Infra VI international fundraise, prepared with Cave Capital. Confidential.</footer>
 </div>
+<div id="cardhost"></div>
 <div id="modalhost"></div>
 <div id="toast" role="status"></div>
 
@@ -380,11 +466,23 @@ function normalize(s){
   s.added = s.added||{}; KEYS.forEach(k=>{ if(!Array.isArray(s.added[k])) s.added[k]=[]; });
   s.excluded = Array.isArray(s.excluded) ? s.excluded : [];
   s.mtgs = s.mtgs||{}; KEYS.forEach(k=>{ if(!Array.isArray(s.mtgs[k])) s.mtgs[k]=[]; });
+  s.ms = Array.isArray(s.ms) ? s.ms : [];
   return s;
 }
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-function rec(id){ const r = state.recs[id] || {}; return {s:r.s||'not_started', r:r.r||'XP', n:r.n||'', t:r.t||'', by:r.by||''}; }
+function rec(id){ const r = state.recs[id] || {}; return {s:r.s||'not_started', r:r.r||'XP', n:r.n||'', t:r.t||'', by:r.by||'',
+  ck:r.ck||'', ckt:r.ckt||'', ce:r.ce||'', cp:r.cp||'', cli:r.cli||'', mk:r.mk||'', ma:r.ma||'', mp:r.mp||''}; }
+/* effective main point of contact: the override saved in the platform, else the base row */
+function contactOf(x){
+  const r = rec(x.i);
+  const over = !!(r.ck || r.ce || r.ckt || r.cp || r.cli);
+  if (!over) return { k:x.k||'', kt:x.kt||'', e:x.e||'', p:x.p||'', li:x.li||'', over:false };
+  return { k:r.ck||x.k||'', kt:r.ckt||'', e:r.ce||'', p:r.cp||'', li:r.cli||'', over:true };
+}
+function fromRow(r){ return { s:r.status, r:r.owner, n:r.note||'', t:r.updated_at||'', by:r.updated_by||'',
+  ck:r.contact_name||'', ckt:r.contact_title||'', ce:r.contact_email||'', cp:r.contact_phone||'', cli:r.contact_linkedin||'',
+  mk:r.mtg_kind||'', ma:r.mtg_at||'', mp:r.mtg_place||'' }; }
 function rowsOf(k){ const ex = new Set(state.excluded); return AG[k].rows.concat(state.added[k]).filter(r=>!ex.has(r.i)); }
 function findRow(k,id){ return AG[k].rows.find(r=>r.i===id) || state.added[k].find(r=>r.i===id); }
 function regionOf(id){ for(const k of KEYS){ if(findRow(k,id)) return k; } return null; }
@@ -491,14 +589,15 @@ async function loadMember(){
   return { id:user.id, email:data.email||user.email, name:data.name||'', team:data.team||'XP', can_edit:!!data.can_edit, member:true };
 }
 async function loadAll(){
-  const [ag, inv, rs, ex, mt] = await Promise.all([
+  const [ag, inv, rs, ex, mt, ms] = await Promise.all([
     sb.from('agendas').select('*').order('sort_order'),
     sb.from('investors').select('id,region,row,custom,sort_order').order('sort_order'),
-    sb.from('record_state').select('investor_id,status,owner,note,updated_at,updated_by'),
+    sb.from('record_state').select('investor_id,status,owner,note,updated_at,updated_by,contact_name,contact_title,contact_email,contact_phone,contact_linkedin,mtg_kind,mtg_at,mtg_place'),
     sb.from('excluded').select('investor_id'),
     sb.from('meetings').select('id,region,day,hour,investor_id'),
+    sb.from('milestones').select('id,at,title,kind,region,investor_id,created_by'),
   ]);
-  const err = [ag,inv,rs,ex,mt].find(r=>r.error);
+  const err = [ag,inv,rs,ex,mt,ms].find(r=>r.error);
   if (err) throw err.error;
   KEYS.forEach(k=>{ AG[k] = { name:'', short:k.toUpperCase(), win:'', note:'', start:'2026-01-01', end:'2026-01-05', rows:[] }; });
   (ag.data||[]).forEach(a=>{ if (AG[a.key]) Object.assign(AG[a.key], { name:a.name, short:a.short, win:a.win||'', note:a.note||'', start:a.start_date, end:a.end_date }); });
@@ -508,9 +607,10 @@ async function loadAll(){
     if (!AG[x.region]) return;
     if (x.custom) { row.custom = true; s.added[x.region].push(row); } else AG[x.region].rows.push(row);
   });
-  (rs.data||[]).forEach(r=>{ s.recs[r.investor_id] = { s:r.status, r:r.owner, n:r.note||'', t:r.updated_at||'', by:r.updated_by||'' }; });
+  (rs.data||[]).forEach(r=>{ s.recs[r.investor_id] = fromRow(r); });
   s.excluded = (ex.data||[]).map(r=>r.investor_id);
   (mt.data||[]).forEach(m=>{ if (s.mtgs[m.region]) s.mtgs[m.region].push({ id:m.id, d:m.day, h:m.hour, inv:m.investor_id }); });
+  s.ms = (ms.data||[]).map(m=>({ id:m.id, at:m.at, title:m.title, kind:m.kind||'other', region:m.region||'', inv:m.investor_id||'', by:m.created_by||'' }));
   state = s;
 }
 async function enterApp(){
@@ -566,19 +666,35 @@ window.addEventListener('beforeunload', e=>{ if (pending>0){ e.preventDefault();
 function flushNote(){
   if (pendingNote){ const p = pendingNote; pendingNote = null; applyEdit(p.id,'n',p.val,false); }
 }
-const COL = { s:'status', r:'owner', n:'note' };
+const COL = { s:'status', r:'owner', n:'note', ck:'contact_name', ckt:'contact_title', ce:'contact_email', cp:'contact_phone', cli:'contact_linkedin', mk:'mtg_kind', ma:'mtg_at', mp:'mtg_place' };
+/* repaint whatever is on screen after a local or remote change */
+function repaint(){
+  if (view==='home') render();
+  else { renderRows(view); refreshCounts(view); renderConf(view); if (sub[view]==='cal') renderCal(view); }
+  if (card.id && !card.editContact && !card.editMtg) renderCard(false);
+}
 function applyEdit(id, field, val, rerender){
   const r = state.recs[id] || (state.recs[id] = {});
   if (r[field]===val && field!=='n') return;
   r[field] = val; r.t = new Date().toISOString(); r.by = me ? me.email : '';
-  if (rerender){ renderRows(view); refreshCounts(view); }
+  if (rerender) repaint();
   const payload = { investor_id:id }; payload[COL[field]] = val;
-  persist('Change', ()=>sb.from('record_state').upsert(payload, { onConflict:'investor_id' }));
+  return persist('Change', ()=>sb.from('record_state').upsert(payload, { onConflict:'investor_id' }));
+}
+/* several columns in one write (contact block, meeting block) */
+function applyEdits(id, obj, label){
+  const r = state.recs[id] || (state.recs[id] = {});
+  const payload = { investor_id:id };
+  Object.keys(obj).forEach(f=>{ r[f] = obj[f]; payload[COL[f]] = obj[f]===''? null : obj[f]; });
+  r.t = new Date().toISOString(); r.by = me ? me.email : '';
+  repaint();
+  return persist(label||'Change', ()=>sb.from('record_state').upsert(payload, { onConflict:'investor_id' }));
 }
 function ed(id, field, val){
   if (mode==='readonly') { toast('View-only access. Changes are not saved.'); return; }
   flushNote();
   applyEdit(id, field, val, field==='s');
+  if (field==='s' && val==='confirmed' && !rec(id).mk && !card.id) toast('Confirmed. Open the card to add the format (call or in person) and the date.');
 }
 
 /* ================= realtime: other people's changes ================= */
@@ -589,10 +705,18 @@ function subscribeRealtime(){
       const n = p.new; if (!n || !n.investor_id) return;
       const cur = state.recs[n.investor_id] || {};
       const typing = pendingNote && pendingNote.id===n.investor_id;
-      const nn = typing ? (cur.n||'') : (n.note||'');
-      if (cur.s===n.status && cur.r===n.owner && (cur.n||'')===nn) { cur.t = n.updated_at; cur.by = n.updated_by; return; }
-      state.recs[n.investor_id] = { s:n.status, r:n.owner, n:nn, t:n.updated_at, by:n.updated_by||'' };
-      if (view==='home') render(); else { renderRows(view); refreshCounts(view); if (sub[view]==='cal') renderCal(view); }
+      const inc = fromRow(n);
+      if (typing) inc.n = cur.n||'';
+      const same = ['s','r','n','ck','ckt','ce','cp','cli','mk','ma','mp'].every(f=>(cur[f]||'')===(inc[f]||''));
+      if (same) { cur.t = inc.t; cur.by = inc.by; return; }
+      state.recs[n.investor_id] = inc;
+      repaint();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'milestones' }, p=>{
+      if (p.eventType==='INSERT'){ const m=p.new; if (state.ms.some(x=>x.id===m.id)) return; state.ms.push({ id:m.id, at:m.at, title:m.title, kind:m.kind||'other', region:m.region||'', inv:m.investor_id||'', by:m.created_by||'' }); }
+      else if (p.eventType==='DELETE'){ const id=p.old && p.old.id; if (!state.ms.some(x=>x.id===id)) return; state.ms = state.ms.filter(x=>x.id!==id); }
+      else return;
+      if (view==='home') render();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'excluded' }, p=>{
       const id = (p.new && p.new.investor_id) || (p.old && p.old.investor_id); if (!id) return;
@@ -606,7 +730,8 @@ function subscribeRealtime(){
       if (p.eventType==='INSERT'){ const m=p.new; if (!state.mtgs[m.region] || state.mtgs[m.region].some(x=>x.id===m.id)) return; state.mtgs[m.region].push({id:m.id,d:m.day,h:m.hour,inv:m.investor_id}); }
       else if (p.eventType==='DELETE'){ const m=p.old; let hit=false; KEYS.forEach(k=>{ const b=state.mtgs[k].length; state.mtgs[k]=state.mtgs[k].filter(x=>x.id!==m.id); if (state.mtgs[k].length!==b) hit=true; }); if (!hit) return; }
       else return;
-      if (view==='home') render(); else { refreshCounts(view); if (sub[view]==='cal') renderCal(view); }
+      if (view==='home') render(); else { refreshCounts(view); renderConf(view); if (sub[view]==='cal') renderCal(view); }
+      if (card.id) renderCard(false);
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'investors' }, p=>{
       if (p.eventType==='INSERT'){ const x=p.new; if (!x.custom || !state.added[x.region] || findRow(x.region, x.id)) return; const row=Object.assign({}, x.row||{}); row.i=x.id; row.custom=true; state.added[x.region].push(row); }
@@ -631,6 +756,8 @@ async function loadActivity(id){
     if (a.action==='update' && a.field==='status') what = 'Status: '+esc(lab(a.old_value))+' to '+esc(lab(a.new_value));
     else if (a.action==='update' && a.field==='owner') what = 'Owner: '+esc(a.old_value)+' to '+esc(a.new_value);
     else if (a.action==='update' && a.field==='note') what = 'Note updated';
+    else if (a.action==='update' && a.field==='contact') what = 'Main contact: '+esc((a.new_value||'').split(' | ').filter(Boolean).slice(0,2).join(', ') || 'reset to the original');
+    else if (a.action==='update' && a.field==='meeting') what = 'Meeting details: '+esc(mtgLabel(a.new_value) || 'cleared');
     else what = esc(a.action);
     return '<li><span class="at">'+esc(when)+'</span><span class="who">'+esc((a.user_email||'system').replace(/@.*$/,''))+'</span><span class="what">'+what+'</span></li>';
   }).join('') + '</ul>';
@@ -639,7 +766,7 @@ async function loadActivity(id){
 /* ================= smart search ================= */
 function score(row, tokens){
   let sc = 0;
-  const org=(row.o||'').toLowerCase(), aka=(row.aka||'').toLowerCase(), kct=(row.k||'').toLowerCase(),
+  const org=(row.o||'').toLowerCase(), aka=(row.aka||'').toLowerCase(), kct=((row.k||'')+' '+contactOf(row).k).toLowerCase(),
         typ=(row.y||'').toLowerCase(), cty=(row.c||'').toLowerCase(),
         txt=((row.ra||'')+' '+(row.pf||'')).toLowerCase();
   for (const t of tokens){
@@ -689,12 +816,12 @@ function renderGlobalSearch(){
   if (!res.length){ gp.innerHTML = '<div class="gempty">No matches in the base for "'+esc(q)+'".</div>'; return; }
   gp.innerHTML = '<div class="gph">'+res.length+' result'+(res.length>1?'s':'')+'</div>' + res.map(x=>{
     const r=x.r, st=STATUS[rec(r.i).s];
-    const meta=[r.y,r.c].filter(Boolean).join(' · ');
+    const meta=[r.y,r.c].filter(Boolean).join(' · '); const ct=contactOf(r).k;
     const snip=(r.ra||r.pf||'').slice(0,110);
     return '<button type="button" class="gres" data-k="'+x.k+'" data-id="'+esc(r.i)+'">'
       + '<span class="r1"><span class="rgn">'+RGN[x.k]+'</span><b>'+esc(r.o)+'</b>'
       + '<span class="lchip" style="margin-left:auto"><i style="background:'+st.c+'"></i>'+st.l+'</span></span>'
-      + (meta?'<span class="r2">'+esc(meta)+(r.k?' · '+esc(r.k):'')+'</span>':'')
+      + (meta?'<span class="r2">'+esc(meta)+(ct?' · '+esc(ct):'')+'</span>':'')
       + (snip?'<span class="r3">'+esc(snip)+'</span>':'')
       + '</button>';
   }).join('');
@@ -703,11 +830,11 @@ function renderGlobalSearch(){
 function goTo(k, id){
   filters[k] = {q:'',tier:'',st:'',seg:'',resp:''};
   sub[k] = 'targets';
-  expanded[k] = id;
   view = k; render();
   requestAnimationFrame(()=>{
     const tr = document.querySelector('tr[data-id="'+CSS.escape(id)+'"]');
     if (tr){ tr.scrollIntoView({block:'center'}); tr.classList.add('flash'); setTimeout(()=>tr.classList.remove('flash'), 1600); }
+    openCard(k, id);
   });
 }
 
@@ -756,6 +883,7 @@ function renderHome(){
     + tile(st.n,'Targets') + tile(st.contacted,'Contacted') + tile(st.booked,'Booked')
     + tile(st.held,'Held') + tile(st.declined,'Declined')
     + '</div>';
+  h += '<div id="confzone">'+confHtml(KEYS, true)+'</div>';
   h += '<div class="cards">';
   for (const k of KEYS){
     const a = AG[k]; const s = stats(rowsOf(k));
@@ -773,9 +901,10 @@ function renderHome(){
       + '</div>';
   }
   h += '</div>';
+  h += timelineHtml();
   h += '<div class="secttl">Pipeline funnel</div><div class="funrow">'+KEYS.map(funnelHtml).join('')+'</div>';
   h += '<div class="card planrow"><h4>Travel plan</h4><div class="plan">'
-    + '<div><div class="pt">New York, 19 to 23 October</div><div class="pd">LAVCA Week runs 19 to 21 October; Thursday 22 and Friday 23 reserved for office visits. Wave 1: 48 of the 60 intro emails sent between 30 Aug and 3 Sep; 12 held for a revised approach.</div></div>'
+    + '<div><div class="pt">New York, 19 to 23 October</div><div class="pd">LAVCA Week runs 19 to 21 October; Thursday 22 and Friday 23 reserved for office visits. Wave 1 intro emails went out 30 Aug to 3 Sep; Wave 2 (new names and follow-ups) was handed to Eduardo on 18 Sep.</div></div>'
     + '<div><div class="pt">Dubai, meetings from Monday 30 November</div><div class="pd">Suggested departure from Brazil on the Saturday 28 November overnight flight.</div></div>'
     + '<div><div class="pt">China, week of 7 December</div><div class="pd">Depart the UAE on Friday 4 or Saturday 5 December, depending on preference and flight availability.</div></div>'
     + '</div></div>';
@@ -786,6 +915,138 @@ function bindHome(){
     c.onclick = ()=>setView(c.dataset.v);
     c.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setView(c.dataset.v);} };
   });
+  bindConf(); bindTimeline();
+}
+
+/* ---------- confirmed meetings block ---------- */
+function fmtWhen(iso, withTime){
+  if (!iso) return '';
+  const d = new Date(iso); if (isNaN(d)) return String(iso);
+  const o = { weekday:'short', day:'numeric', month:'short' };
+  if (withTime!==false && /T\d\d:\d\d/.test(String(iso))) { o.hour='2-digit'; o.minute='2-digit'; }
+  return d.toLocaleString('en-GB', o).replace(',', '');
+}
+function mtgLabel(v){
+  const p = String(v||'').split(' | ');
+  const k = p[0]==='call' ? 'Call' : (p[0]==='in_person' ? 'In person' : '');
+  return [k, p[1] ? fmtWhen(p[1]) : '', p[2]||''].filter(Boolean).join(', ');
+}
+/* one item per name that is confirmed, held, or booked in the trip calendar */
+function confItems(keys){
+  const out = [];
+  keys.forEach(k=>rowsOf(k).forEach(x=>{
+    const r = rec(x.i); const slot = state.mtgs[k].find(m=>m.inv===x.i);
+    const confirmed = r.s==='confirmed' || r.s==='met';
+    if (!confirmed && !slot) return;
+    let at = r.ma || '', kind = r.mk || '';
+    if (!at && slot) at = slot.d+'T'+slot.h+':00';
+    if (!kind && slot) kind = 'in_person';
+    out.push({ k, x, r, at, kind, place: r.mp || (slot && !r.ma ? 'Trip calendar slot' : ''), slot:!!slot });
+  }));
+  out.sort((a,b)=> (a.at?0:1)-(b.at?0:1) || String(a.at).localeCompare(String(b.at)) || a.x.o.localeCompare(b.x.o));
+  return out;
+}
+function confHtml(keys, showRegion){
+  const items = confItems(keys);
+  let h = '<div class="card confbox"><div class="ch"><h4>Confirmed meetings</h4><span class="cc">'+items.length+'</span>'
+    + '<span class="dnote" style="margin:0 0 0 auto">Names set to Confirmed or Meeting held, plus trip calendar bookings.</span></div>';
+  if (!items.length) h += '<div class="cempty">Nothing confirmed yet. Set a name to Confirmed in its card and add whether it is a call or an in-person meeting, with the date.</div>';
+  else h += '<div class="conflist">' + items.map(it=>{
+    const st = STATUS[it.r.s]; const ct = contactOf(it.x);
+    const kind = it.kind==='call' ? '<span class="ckind call">Call</span>' : (it.kind==='in_person' ? '<span class="ckind inp">In person</span>' : '');
+    return '<button type="button" class="confit" data-k="'+it.k+'" data-id="'+esc(it.x.i)+'" style="--sc:'+st.c+'"><i></i><span style="min-width:0;flex:1">'
+      + '<span class="co">'+esc(it.x.o)+'</span>'
+      + (ct.k ? '<span class="cm">'+esc(ct.k)+(ct.kt?', '+esc(ct.kt):'')+'</span>' : '')
+      + '<span class="cw">'+kind+(it.at ? '<span>'+esc(fmtWhen(it.at))+'</span>' : '<span class="mutcell">Date to be set</span>')+(it.place?'<span class="mutcell">· '+esc(it.place)+'</span>':'')+'</span>'
+      + '</span>' + (showRegion ? '<span class="rgn">'+RGN[it.k]+'</span>' : '') + '</button>';
+  }).join('') + '</div>';
+  return h + '</div>';
+}
+function bindConf(){ document.querySelectorAll('.confit').forEach(b=>b.onclick=()=>openCard(b.dataset.k, b.dataset.id)); }
+function renderConf(k){ const z = $('confzone'); if (!z) return; z.innerHTML = confHtml(k==='home'?KEYS:[k], k==='home'); bindConf(); }
+
+/* ---------- milestones timeline ---------- */
+const MKIND = { outreach:['Outreach','var(--s-sen)'], call:['Call','var(--s-off)'], meeting:['Meeting scheduled','var(--brand)'], held:['Meeting held','var(--s-met)'], other:['Milestone','var(--soft)'] };
+function tlEvents(){
+  const ev = state.ms.map(m=>({ id:m.id, at:String(m.at).slice(0,10), title:m.title, kind:m.kind, k:m.region, inv:m.inv, manual:true }));
+  KEYS.forEach(k=>rowsOf(k).forEach(x=>{
+    const r = rec(x.i); const slot = state.mtgs[k].find(m=>m.inv===x.i);
+    if (r.s==='met'){ ev.push({ at:(r.ma||r.t||'').slice(0,10), title:'Meeting held with '+x.o, kind:'held', k, inv:x.i }); return; }
+    if (r.s==='confirmed' && r.ma){ ev.push({ at:r.ma.slice(0,10), title:(r.mk==='call'?'Call with ':'Meeting with ')+x.o, kind:r.mk==='call'?'call':'meeting', k, inv:x.i }); return; }
+    if (slot){ ev.push({ at:slot.d, title:'Meeting scheduled with '+x.o+' ('+slot.h+')', kind:'meeting', k, inv:x.i }); }
+  }));
+  return ev.filter(e=>/^\d{4}-\d\d-\d\d$/.test(e.at)).sort((a,b)=>a.at.localeCompare(b.at)||a.title.localeCompare(b.title));
+}
+function timelineHtml(){
+  const ev = tlEvents();
+  const pad = n=>String(n).padStart(2,'0');
+  const today = new Date(); const tIso = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+  const dates = ev.map(e=>e.at).concat([tIso]).sort();
+  const first = new Date(dates[0].slice(0,7)+'-01T00:00:00'), last = new Date(dates[dates.length-1].slice(0,7)+'-01T00:00:00');
+  const months = []; for (let d=new Date(first); d<=last && months.length<12; d.setMonth(d.getMonth()+1)) months.push(new Date(d));
+  let h = '<div class="card tlbox"><div class="ch"><h4>Milestones</h4>'
+    + (mode!=='readonly' ? '<button type="button" class="btn gho" id="msadd">Add milestone</button>' : '') + '</div>'
+    + '<div class="tlleg">'+Object.keys(MKIND).map(k=>'<span class="lchip"><i style="background:'+MKIND[k][1]+'"></i>'+MKIND[k][0]+'</span>').join('')+'</div>';
+  if (!ev.length) h += '<div class="tlempty">No milestones yet.</div>';
+  h += '<div class="tlscroll"><div class="tl">';
+  for (const m of months){
+    const ym = m.getFullYear()+'-'+pad(m.getMonth()+1);
+    const dim = new Date(m.getFullYear(), m.getMonth()+1, 0).getDate();
+    const mine = ev.filter(e=>e.at.startsWith(ym));
+    const past = ym < tIso.slice(0,7);
+    h += '<div class="tlm'+(past?' past':'')+'"><div class="mh">'+m.toLocaleDateString('en-GB',{month:'short',year:'numeric'})+'</div><div class="rail">'
+      + mine.map(e=>'<span class="tldot" title="'+esc(fmtWhen(e.at,false)+': '+e.title)+'" style="left:'+(((+e.at.slice(8,10))-0.5)/dim*100).toFixed(1)+'%;--sc:'+MKIND[e.kind][1]+'"></span>').join('')
+      + (tIso.startsWith(ym) ? '<span class="tltoday" style="left:'+(((+tIso.slice(8,10))-0.5)/dim*100).toFixed(1)+'%"></span>' : '')
+      + '</div>'
+      + mine.map(e=>'<div class="tlchip" style="--sc:'+MKIND[e.kind][1]+'"><i></i><span class="td">'+e.at.slice(8,10)+'</span>'
+          + '<span class="tt'+(e.inv?' lnk':'')+'"'+(e.inv?' data-k="'+esc(e.k||regionOf(e.inv)||'')+'" data-id="'+esc(e.inv)+'"':'')+'>'+esc(e.title)+'</span>'
+          + (e.manual && mode!=='readonly' ? '<button type="button" class="tx" data-ms="'+esc(e.id)+'" aria-label="Delete milestone">&#215;</button>' : '')
+          + '</div>').join('')
+      + '</div>';
+  }
+  return h + '</div></div></div>';
+}
+function bindTimeline(){
+  if ($('msadd')) $('msadd').onclick = openMilestoneModal;
+  document.querySelectorAll('.tlchip .tt.lnk').forEach(s=>s.onclick=()=>{ if (s.dataset.id) openCard(s.dataset.k || regionOf(s.dataset.id), s.dataset.id); });
+  document.querySelectorAll('.tlchip .tx').forEach(b=>b.onclick=async ()=>{
+    const id = b.dataset.ms; const gone = state.ms.find(m=>m.id===id);
+    state.ms = state.ms.filter(m=>m.id!==id); render();
+    const ok = await persist('Milestone removal', ()=>sb.from('milestones').delete().eq('id', id));
+    if (ok) toast('Milestone removed'); else if (gone) { state.ms.push(gone); render(); }
+  });
+}
+function openMilestoneModal(){
+  if (mode==='readonly'){ toast('View-only access. Changes are not saved.'); return; }
+  const host = $('modalhost');
+  const pad = n=>String(n).padStart(2,'0'); const t = new Date();
+  host.innerHTML = '<div class="ovl" id="ovl"><div class="modal" role="dialog" aria-modal="true" aria-label="Add milestone">'
+    + '<div class="mh"><h3>Add milestone</h3><button type="button" class="mxx" id="mclose">Close</button></div>'
+    + '<div class="mb"><div class="frm">'
+    + '<div class="full"><label for="ms_t">Milestone (required)</label><input type="text" id="ms_t" placeholder="Call with investor, meeting confirmed, deck sent"></div>'
+    + '<div><label for="ms_d">Date</label><input type="date" id="ms_d" value="'+t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())+'"></div>'
+    + '<div><label for="ms_k">Type</label><select id="ms_k">'+Object.keys(MKIND).map(k=>'<option value="'+k+'">'+MKIND[k][0]+'</option>').join('')+'</select></div>'
+    + '<div><label for="ms_r">Agenda</label><select id="ms_r"><option value="">All</option>'+KEYS.map(k=>'<option value="'+k+'">'+esc(AG[k].short)+'</option>').join('')+'</select></div>'
+    + '</div><div class="mferr" id="mserr"></div></div>'
+    + '<div class="mfoot"><button type="button" class="btn gho" id="mcancel">Cancel</button><button type="button" class="btn pri" id="mssave">Add milestone</button></div>'
+    + '</div></div>';
+  const close = ()=>{ host.innerHTML=''; };
+  $('mclose').onclick = close; $('mcancel').onclick = close;
+  $('ovl').addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
+  $('ovl').addEventListener('mousedown', e=>{ if(e.target.id==='ovl') close(); });
+  $('ms_t').focus();
+  $('mssave').onclick = ()=>{
+    const title = $('ms_t').value.trim(), at = $('ms_d').value;
+    if (!title){ $('mserr').textContent='Give the milestone a name.'; $('ms_t').focus(); return; }
+    if (!/^\d{4}-\d\d-\d\d$/.test(at)){ $('mserr').textContent='Pick a date.'; return; }
+    const m = { id:'ms'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), at, title, kind:$('ms_k').value, region:$('ms_r').value, inv:'', by: me?me.email:'' };
+    $('mssave').disabled = true;
+    persist('Milestone', ()=>sb.from('milestones').insert({ id:m.id, at, title, kind:m.kind, region:m.region||null })).then(ok=>{
+      if (!ok){ $('mssave').disabled=false; $('mserr').textContent='Could not save this milestone. Try again.'; return; }
+      if (!state.ms.some(x=>x.id===m.id)) state.ms.push(m);
+      close(); render(); toast('Milestone added');
+    });
+  };
 }
 
 /* ---------- agenda shell ---------- */
@@ -800,6 +1061,7 @@ function renderAgendaShell(k){
     + (a.note?'<div class="note">'+esc(a.note)+'</div>':'')
     + '<div class="kpis" id="kpis"></div>'
     + '<div class="abar" id="abar"></div></div>';
+  h += '<div id="confzone">'+confHtml([k], false)+'</div>';
   h += '<div class="subtabs" role="tablist">'
     + '<button type="button" data-t="targets" role="tab">Targets</button>'
     + '<button type="button" data-t="cal" role="tab">Calendar<span id="calcount"></span></button>'
@@ -825,7 +1087,7 @@ function renderAgendaShell(k){
   return h;
 }
 function bindAgenda(k){
-  refreshCounts(k);
+  refreshCounts(k); bindConf();
   document.querySelectorAll('.subtabs button').forEach(b=>{
     b.classList.toggle('on', sub[k]===b.dataset.t);
     b.setAttribute('aria-selected', sub[k]===b.dataset.t ? 'true':'false');
@@ -891,12 +1153,97 @@ function rsSel(x){
 }
 function dItem(l, v, html){ if(!v) return ''; return '<div class="dit"><div class="dl">'+l+'</div><div class="dv">'+(html||esc(v))+'</div></div>'; }
 function dPar(l, v){ if(!v) return ''; return '<p class="dpar"><b>'+l+'</b>'+esc(v)+'</p>'; }
-function detailHtml(k, x){
-  const r = rec(x.i);
-  let g = '<div class="dgrid">'
-    + dItem('Email', x.e, x.e ? esc(x.e)+' <button type="button" class="cpy" data-c="'+esc(x.e)+'">Copy</button>' : '')
-    + dItem('Phone', x.p)
-    + dItem('LinkedIn', x.li, x.li?'<a href="'+esc(x.li)+'" target="_blank" rel="noopener">Profile</a>':'')
+/* ---------- investor card (slide-over) ---------- */
+const card = { k:null, id:null, editContact:false, editMtg:false };
+function openCard(k, id){
+  if (!k || !findRow(k,id)) return;
+  flushNote();
+  card.k = k; card.id = id; card.editContact = false; card.editMtg = false;
+  const host = $('cardhost');
+  host.innerHTML = '<div class="dovl" id="dovl"><div class="drawer" role="dialog" aria-modal="true" aria-label="Investor card" id="drawer"></div></div>';
+  renderCard(true);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ const o=$('dovl'); if (o) o.classList.add('in'); }));
+  $('dovl').addEventListener('mousedown', e=>{ if (e.target.id==='dovl') closeCard(); });
+  document.addEventListener('keydown', cardEsc);
+}
+function cardEsc(e){ if (e.key==='Escape' && !$('ovl')) closeCard(); }
+function closeCard(){
+  flushNote();
+  card.k = null; card.id = null; $('cardhost').innerHTML = '';
+  document.removeEventListener('keydown', cardEsc);
+}
+function toLocalInput(iso){ if (!iso) return ''; const d=new Date(iso); if (isNaN(d)) return ''; const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); }
+function renderCard(first){
+  const d = $('drawer'); if (!d || !card.id) return;
+  const k = card.k, x = findRow(k, card.id); if (!x) { closeCard(); return; }
+  const r = rec(x.i); const st = STATUS[r.s]; const ct = contactOf(x); const ro = mode==='readonly';
+  const slot = state.mtgs[k].find(m=>m.inv===x.i);
+  const scrollTop = first ? 0 : (d.querySelector('.dbody') ? d.querySelector('.dbody').scrollTop : 0);
+  let h = '<div class="dhead"><div class="dt">'
+    + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">'
+    + (x.t?'<span class="tier '+esc(x.t)+'">'+esc(x.t)+'</span>':'') + '<span class="rgn" style="font-size:9.5px;font-weight:700;letter-spacing:.05em;border-radius:4px;padding:2px 5px;background:var(--fill);color:var(--mut)">'+RGN[k]+'</span>'
+    + (x.g ? '<span class="tag" style="margin:0">'+esc(x.gShort||x.g)+'</span>':'') + (x.bf?'<span class="tag bf" style="margin:0">Breakfast</span>':'') + (x.custom?'<span class="tag" style="margin:0">Added</span>':'')
+    + '</div>'
+    + '<h3>'+esc(x.o)+'</h3>'
+    + '<div class="dsub">'+esc([x.y, x.c, fmtAUM(x.a)?'AUM '+fmtAUM(x.a):''].filter(Boolean).join(' · '))+'</div>'
+    + '</div><button type="button" class="dx" id="dclose">Close</button></div>';
+  h += '<div class="dbody">';
+  /* status and owner */
+  h += '<div class="dsec"><div class="drow2">'
+    + '<div><div class="dl">Status</div>'+stSel(x)+'</div>'
+    + '<div><div class="dl">Owner</div>'+rsSel(x)+'</div>'
+    + (r.t ? '<span class="dmeta" style="margin-left:auto">Updated '+esc(new Date(r.t).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))+(r.by && !/^seed/.test(r.by) ? ' by '+esc(r.by.replace(/@.*$/,'')) : '')+'</span>' : '')
+    + '</div></div>';
+  /* main point of contact */
+  h += '<div class="dsec"><div class="dsh"><div class="dl">Main point of contact</div>'
+    + (!ro && !card.editContact ? '<button type="button" class="lnk" id="cedit">Change contact</button>' : '') + '</div>';
+  if (card.editContact){
+    h += '<div class="frm2" id="cform">'
+      + '<div class="full"><label for="c_k">Name</label><input type="text" id="c_k" value="'+esc(ct.k)+'"></div>'
+      + '<div class="full"><label for="c_kt">Title</label><input type="text" id="c_kt" value="'+esc(ct.kt)+'"></div>'
+      + '<div><label for="c_e">Email</label><input type="email" id="c_e" value="'+esc(ct.e)+'"></div>'
+      + '<div><label for="c_p">Phone</label><input type="text" id="c_p" value="'+esc(ct.p)+'"></div>'
+      + '<div class="full"><label for="c_li">LinkedIn</label><input type="text" id="c_li" value="'+esc(ct.li)+'" placeholder="https://www.linkedin.com/in/..."></div>'
+      + '<div class="acts"><button type="button" class="btn pri" id="csave">Save contact</button><button type="button" class="btn gho" id="ccancel">Cancel</button>'
+      + (ct.over ? '<button type="button" class="btn gho" id="creset">Back to original</button>' : '')
+      + '<span class="hint">Saved for the whole team</span></div>'
+      + '<div class="mferr" id="cerr" style="grid-column:1/-1"></div></div>';
+  } else {
+    h += '<div class="ctc">'
+      + '<div class="cn">'+(ct.k?esc(ct.k):'<span class="mutcell">No contact yet</span>')+(ct.over?'<span class="tag ed">Changed in the platform</span>':'')+(ct.kt?'<span class="sub2">'+esc(ct.kt)+'</span>':'')+'</div>'
+      + '<div class="cv"><div class="dl">Email</div>'+(ct.e?esc(ct.e)+' <button type="button" class="cpy" data-c="'+esc(ct.e)+'">Copy</button>':'<span class="mutcell">-</span>')+'</div>'
+      + '<div class="cv"><div class="dl">Phone</div>'+(ct.p?esc(ct.p):'<span class="mutcell">-</span>')+'</div>'
+      + '<div class="cv"><div class="dl">LinkedIn</div>'+(ct.li?'<a href="'+esc(/^https?:/.test(ct.li)?ct.li:'https://'+ct.li)+'" target="_blank" rel="noopener">Profile</a>':'<span class="mutcell">-</span>')+'</div>'
+      + (x.sc ? '<div class="cv"><div class="dl">Secondary contact</div>'+esc(x.sc)+'</div>' : '')
+      + '</div>';
+    if (ct.over && x.k) h += '<div class="corig">Original contact on the list: '+esc(x.k)+(x.kt?', '+esc(x.kt):'')+(x.e?' ('+esc(x.e)+')':'')+'</div>';
+  }
+  h += '</div>';
+  /* meeting details */
+  const hasM = !!(r.mk || r.ma || r.mp);
+  h += '<div class="dsec"><div class="dsh"><div class="dl">Meeting</div>'
+    + (!ro && !card.editMtg ? '<button type="button" class="lnk" id="medit">'+(hasM?'Edit details':'Add details')+'</button>' : '') + '</div>';
+  if (card.editMtg){
+    h += '<div class="frm2" id="mform">'
+      + '<div><label for="m_k">Format</label><select id="m_k"><option value="">Not set</option><option value="call"'+(r.mk==='call'?' selected':'')+'>Call</option><option value="in_person"'+(r.mk==='in_person'?' selected':'')+'>In person</option></select></div>'
+      + '<div><label for="m_a">Date and time</label><input type="datetime-local" id="m_a" value="'+esc(toLocalInput(r.ma))+'"></div>'
+      + '<div class="full"><label for="m_p">Place or link</label><input type="text" id="m_p" value="'+esc(r.mp)+'" placeholder="XP New York office, Teams link, investor office"></div>'
+      + '<div class="acts"><button type="button" class="btn pri" id="msave2">Save meeting</button><button type="button" class="btn gho" id="mcancel2">Cancel</button>'
+      + (hasM ? '<button type="button" class="btn gho" id="mclear">Clear</button>' : '')
+      + '<span class="hint">Shown under Confirmed meetings once the status is Confirmed</span></div></div>';
+  } else {
+    h += '<div class="mtgsum">'
+      + (r.mk ? '<span class="ckind '+(r.mk==='call'?'call':'inp')+'">'+(r.mk==='call'?'Call':'In person')+'</span>' : '')
+      + (r.ma ? '<span>'+esc(fmtWhen(r.ma))+'</span>' : '')
+      + (r.mp ? '<span class="mutcell">· '+esc(r.mp)+'</span>' : '')
+      + (!hasM ? '<span class="mutcell">No format or date yet.</span>' : '')
+      + '</div>'
+      + (slot ? '<div class="dnote">Trip calendar: '+esc(fmtWhen(slot.d,false))+' at '+esc(slot.h)+' ('+esc(AG[k].short)+').</div>' : '')
+      + (r.s!=='confirmed' && r.s!=='met' ? '<div class="dnote">Set the status to Confirmed for this name to appear in the Confirmed meetings block.</div>' : '');
+  }
+  h += '</div>';
+  /* intel */
+  h += '<div class="dsec"><div class="dl" style="margin-bottom:8px">Details</div><div class="dgrid">'
     + dItem('AUM', fmtAUM(x.a))
     + dItem('Ticket (USD m)', x.tk)
     + dItem('Investment mode', x.m)
@@ -905,21 +1252,67 @@ function detailHtml(k, x){
     + dItem('Relationship', x.rs)
     + dItem('Infra funds on record', x.nf)
     + dItem('Also known as', x.aka)
-    + dItem('Secondary contact', x.sc)
     + dItem('Website', x.w, x.w?'<a href="'+esc(/^https?:/.test(x.w)?x.w:'https://'+x.w)+'" target="_blank" rel="noopener">'+esc(x.w)+'</a>':'')
+    + '</div>'
+    + dPar('Angle', x.ra) + dPar('Profile', x.pf) + (x.bf && x.bfa ? dPar('Breakfast invite', x.bfa) : '') + dPar('How this name reached the list', x.sr)
     + '</div>';
-  g += dPar('Angle', x.ra);
-  g += dPar('Profile', x.pf);
-  if (x.bf && x.bfa) g += dPar('Breakfast invite', x.bfa);
-  g += dPar('How this name reached the list', x.sr);
-  g += '<div class="nwrap"><div class="dl" style="margin-bottom:4px">Notes</div>'
-    + '<textarea class="notea" data-id="'+esc(x.i)+'" placeholder="Add a note for the team"'+(mode==='readonly'?' disabled':'')+'>'+esc(r.n)+'</textarea></div>';
-  g += '<div class="dfoot">'
-    + (mode!=='readonly' ? '<button type="button" class="btn warn exbtn" data-id="'+esc(x.i)+'">Remove from list</button>' : '')
-    + (r.t ? '<span class="dmeta">Last updated '+esc(new Date(r.t).toLocaleString())+(r.by && !/^seed/.test(r.by) ? ' by '+esc(r.by.replace(/@.*$/,'')) : '')+'</span>' : '')
+  /* notes */
+  h += '<div class="dsec"><div class="nwrap"><div class="dl" style="margin-bottom:4px">Notes</div>'
+    + '<textarea class="notea" data-id="'+esc(x.i)+'" placeholder="Add a note for the team"'+(ro?' disabled':'')+'>'+esc(r.n)+'</textarea></div></div>';
+  /* activity + remove */
+  h += '<div class="dsec"><div class="act" data-act="'+esc(x.i)+'"><div class="dl">Activity</div><div class="actl" style="padding:3px 0">Loading...</div></div>'
+    + (!ro ? '<div class="dfoot"><button type="button" class="btn warn exbtn" data-id="'+esc(x.i)+'">Remove from list</button></div>' : '')
     + '</div>';
-  g += '<div class="act" data-act="'+esc(x.i)+'"><div class="dl">Activity</div><div class="actl" style="padding:3px 0">Loading...</div></div>';
-  return g;
+  h += '</div>';
+  /* keep the note the user is typing */
+  const typing = d.querySelector('.notea'); const typed = typing && document.activeElement===typing ? typing.value : null;
+  d.innerHTML = h;
+  if (typed!==null){ const t=d.querySelector('.notea'); t.value=typed; t.focus(); t.selectionStart=t.selectionEnd=typed.length; }
+  const body = d.querySelector('.dbody'); if (body && !first) body.scrollTop = scrollTop;
+  bindCard(k, x);
+  if (first || !d.dataset.act) { d.dataset.act='1'; loadActivity(x.i); } else loadActivity(x.i);
+  if (first) { const c=$('dclose'); if (c) c.focus(); }
+}
+function bindCard(k, x){
+  const d = $('drawer');
+  $('dclose').onclick = closeCard;
+  d.querySelectorAll('.stsel').forEach(s=>s.onchange = e=>ed(s.dataset.id,'s',e.target.value));
+  d.querySelectorAll('.rselc').forEach(s=>s.onchange = e=>ed(s.dataset.id,'r',e.target.value));
+  d.querySelectorAll('.notea').forEach(t=>t.oninput = ()=>{
+    if (mode==='readonly') return;
+    pendingNote = {id:t.dataset.id, val:t.value.trim()};
+    clearTimeout(t._x); t._x=setTimeout(()=>{ if(pendingNote && pendingNote.id===t.dataset.id){ const p=pendingNote; pendingNote=null; applyEdit(p.id,'n',p.val,false); } },500);
+  });
+  d.querySelectorAll('.cpy').forEach(b=>b.onclick = async ()=>{ try { await navigator.clipboard.writeText(b.dataset.c); toast('Email copied'); } catch(e){ toast('Could not copy on this browser'); } });
+  if ($('cedit')) $('cedit').onclick = ()=>{ card.editContact = true; renderCard(false); const i=$('c_k'); if (i) i.focus(); };
+  if ($('ccancel')) $('ccancel').onclick = ()=>{ card.editContact = false; renderCard(false); };
+  if ($('csave')) $('csave').onclick = ()=>{
+    const v = { ck:$('c_k').value.trim(), ckt:$('c_kt').value.trim(), ce:$('c_e').value.trim(), cp:$('c_p').value.trim(), cli:$('c_li').value.trim() };
+    if (!v.ck){ $('cerr').textContent='Enter the contact name.'; $('c_k').focus(); return; }
+    if (v.ce && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.ce)){ $('cerr').textContent='That email does not look right.'; $('c_e').focus(); return; }
+    card.editContact = false;
+    applyEdits(x.i, v, 'Contact').then(ok=>{ if (ok) toast('Main contact updated for '+x.o); });
+  };
+  if ($('creset')) $('creset').onclick = ()=>{
+    card.editContact = false;
+    applyEdits(x.i, { ck:'', ckt:'', ce:'', cp:'', cli:'' }, 'Contact').then(ok=>{ if (ok) toast('Back to the original contact'); });
+  };
+  if ($('medit')) $('medit').onclick = ()=>{ card.editMtg = true; renderCard(false); const i=$('m_k'); if (i) i.focus(); };
+  if ($('mcancel2')) $('mcancel2').onclick = ()=>{ card.editMtg = false; renderCard(false); };
+  if ($('msave2')) $('msave2').onclick = ()=>{
+    const a = $('m_a').value; const iso = a ? new Date(a).toISOString() : '';
+    card.editMtg = false;
+    applyEdits(x.i, { mk:$('m_k').value, ma:iso, mp:$('m_p').value.trim() }, 'Meeting').then(ok=>{ if (ok) toast('Meeting details saved'); });
+  };
+  if ($('mclear')) $('mclear').onclick = ()=>{ card.editMtg = false; applyEdits(x.i, { mk:'', ma:'', mp:'' }, 'Meeting'); };
+  d.querySelectorAll('.exbtn').forEach(b=>b.onclick = async ()=>{
+    if (mode==='readonly') return;
+    const id = b.dataset.id; flushNote(); closeCard();
+    state.excluded.push(id); repaint();
+    const ok = await persist('Removal', ()=>sb.from('excluded').insert({ investor_id:id }));
+    if (ok) toast(x.o+' removed from the list');
+    else { state.excluded = state.excluded.filter(i=>i!==id); repaint(); }
+  });
 }
 function renderRows(k){
   if (view!==k || sub[k]!=='targets' || !$('tzone')) return;
@@ -941,8 +1334,7 @@ function renderRows(k){
     h += '<tr class="emptyrow"><td colspan="'+cols+'">No names match the current filters.'+(filtered?' <button type="button" id="eclr">Clear filters</button>':'')+'</td></tr>';
   }
   for (const x of rows){
-    const open = expanded[k]===x.i;
-    h += '<tr class="rrow" data-id="'+esc(x.i)+'" tabindex="0" aria-expanded="'+(open?'true':'false')+'">'
+    h += '<tr class="rrow" data-id="'+esc(x.i)+'" tabindex="0" aria-haspopup="dialog">'
       + (k==='cn'
           ? '<td><span class="tag src">'+esc(x.gShort||'')+'</span></td>'
           : '<td>'+(x.t?'<span class="tier '+esc(x.t)+'">'+esc(x.t)+'</span>':'')+'</td>')
@@ -953,18 +1345,16 @@ function renderRows(k){
       + '</td>'
       + '<td>'+(x.y?esc(x.y):'<span class="mutcell">-</span>')+'</td>'
       + '<td>'+(x.c?esc(x.c):'<span class="mutcell">-</span>')+'</td>'
-      + '<td>'+esc(x.k||'')+(x.kt?'<span class="sub2">'+esc(x.kt)+'</span>':'')+'</td>'
+      + '<td>'+(()=>{ const c=contactOf(x); return esc(c.k||'')+(c.over?'<span class="tag ed">Changed</span>':'')+(c.kt?'<span class="sub2">'+esc(c.kt)+'</span>':''); })()+'</td>'
       + (k==='cn'?'<td class="num">'+(x.nf?esc(x.nf):'<span class="mutcell">-</span>')+'</td>':'')
       + '<td>'+stSel(x)+'</td>'
       + '<td>'+rsSel(x)+'</td>'
       + '</tr>';
-    if (open) h += '<tr class="drow"><td colspan="'+cols+'">'+detailHtml(k,x)+'</td></tr>';
   }
   h += '</tbody></table>';
   $('tzone').innerHTML = h;
   bindRows(k);
   renderRemoved(k);
-  if (expanded[k]) loadActivity(expanded[k]);
 }
 function bindRows(k){
   const z = $('tzone');
@@ -974,32 +1364,13 @@ function bindRows(k){
     if (s.col===t.dataset.s) s.dir*=-1; else { s.col=t.dataset.s; s.dir=1; }
     renderRows(k);
   });
-  const toggle = tr => { flushNote(); const id = tr.dataset.id; expanded[k] = expanded[k]===id ? null : id; renderRows(k); };
+  const toggle = tr => { openCard(k, tr.dataset.id); };
   z.querySelectorAll('tr.rrow').forEach(tr=>{
     tr.onclick = ev=>{ if (ev.target.closest('select,button,a,textarea,input')) return; toggle(tr); };
     tr.onkeydown = ev=>{ if ((ev.key==='Enter'||ev.key===' ') && !ev.target.closest('select,button,a,textarea,input')){ ev.preventDefault(); toggle(tr); } };
   });
   z.querySelectorAll('.stsel').forEach(s=>s.onchange = e=>ed(s.dataset.id,'s',e.target.value));
   z.querySelectorAll('.rselc').forEach(s=>s.onchange = e=>ed(s.dataset.id,'r',e.target.value));
-  z.querySelectorAll('.notea').forEach(t=>t.oninput = ()=>{
-    if (mode==='readonly') return;
-    pendingNote = {id:t.dataset.id, val:t.value.trim()};
-    clearTimeout(t._x); t._x=setTimeout(()=>{ if(pendingNote && pendingNote.id===t.dataset.id){ const p=pendingNote; pendingNote=null; applyEdit(p.id,'n',p.val,false); } },500);
-  });
-  z.querySelectorAll('.cpy').forEach(b=>b.onclick = async ()=>{
-    try { await navigator.clipboard.writeText(b.dataset.c); toast('Email copied'); }
-    catch(e){ toast('Could not copy on this browser'); }
-  });
-  z.querySelectorAll('.exbtn').forEach(b=>b.onclick = async ()=>{
-    if (mode==='readonly') return;
-    const id = b.dataset.id; const row = findRow(k,id);
-    flushNote();
-    state.excluded.push(id); expanded[k]=null;
-    renderRows(k); refreshCounts(k);
-    const ok = await persist('Removal', ()=>sb.from('excluded').insert({ investor_id:id }));
-    if (ok) toast((row?row.o:'Name')+' removed from the list');
-    else { state.excluded = state.excluded.filter(i=>i!==id); renderRows(k); refreshCounts(k); }
-  });
 }
 function renderRemoved(k){
   const z = $('removedzone'); if (!z) return;
@@ -1012,9 +1383,9 @@ function renderRemoved(k){
   z.querySelectorAll('button[data-id]').forEach(b=>b.onclick=async ()=>{
     const id = b.dataset.id;
     state.excluded = state.excluded.filter(i=>i!==id);
-    renderRows(k); refreshCounts(k);
+    repaint();
     const ok = await persist('Restore', ()=>sb.from('excluded').delete().eq('investor_id', id));
-    if (ok) toast('Restored'); else { state.excluded.push(id); renderRows(k); refreshCounts(k); }
+    if (ok) toast('Restored'); else { state.excluded.push(id); repaint(); }
   });
 }
 
@@ -1087,8 +1458,8 @@ function renderCal(k){
         const row = findRow(k,m.inv);
         const st = row ? STATUS[rec(row.i).s] : STATUS.not_started;
         h += '<div class="slot"><div class="mtg" style="--sc:'+st.c+'">'
-          + '<div class="mo"><i></i><span>'+esc(row?row.o:'(removed name)')+'</span></div>'
-          + (row && row.k ? '<div class="mc">'+esc(row.k)+'</div>':'')
+          + '<div class="mo"><i></i><span class="mopen" data-id="'+esc(m.inv)+'" style="cursor:pointer">'+esc(row?row.o:'(removed name)')+'</span></div>'
+          + (row && contactOf(row).k ? '<div class="mc">'+esc(contactOf(row).k)+'</div>':'')
           + (mode!=='readonly'?'<button type="button" class="mx" data-m="'+esc(m.id)+'" aria-label="Remove meeting">&#215;</button>':'')
           + '</div></div>';
       } else {
@@ -1101,12 +1472,13 @@ function renderCal(k){
   h += '</div></div>';
   z.innerHTML = h;
   z.querySelectorAll('.addb').forEach(b=>b.onclick=()=>openPicker(k,b.dataset.d,b.dataset.h));
+  z.querySelectorAll('.mopen').forEach(b=>b.onclick=()=>openCard(k,b.dataset.id));
   z.querySelectorAll('.mx').forEach(b=>b.onclick=async ()=>{
     const mid = b.dataset.m; const gone = state.mtgs[k].find(m=>m.id===mid);
     state.mtgs[k] = state.mtgs[k].filter(m=>m.id!==mid);
-    renderCal(k); refreshCounts(k);
+    renderCal(k); refreshCounts(k); renderConf(k);
     const ok = await persist('Meeting removal', ()=>sb.from('meetings').delete().eq('id', mid));
-    if (ok) toast('Meeting removed'); else if (gone) { state.mtgs[k].push(gone); renderCal(k); refreshCounts(k); }
+    if (ok) toast('Meeting removed'); else if (gone) { state.mtgs[k].push(gone); renderCal(k); refreshCounts(k); renderConf(k); }
   });
 }
 function openPicker(k,d,hh){
@@ -1139,11 +1511,11 @@ function openPicker(k,d,hh){
       const m = {id:'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), d, h:hh, inv:b.dataset.id};
       if (mtgOf(k,d,hh)) { close(); renderCal(k); toast('That slot was just taken by someone else'); return; }
       state.mtgs[k].push(m);
-      close(); renderCal(k); refreshCounts(k);
+      close(); renderCal(k); refreshCounts(k); renderConf(k);
       const row = findRow(k,b.dataset.id);
       const ok = await persist('Booking', ()=>sb.from('meetings').insert({ id:m.id, region:k, day:d, hour:hh, investor_id:m.inv }));
       if (ok) toast((row?row.o:'Investor')+' booked for '+dLab+' '+hh);
-      else { state.mtgs[k] = state.mtgs[k].filter(x=>x.id!==m.id); renderCal(k); refreshCounts(k); }
+      else { state.mtgs[k] = state.mtgs[k].filter(x=>x.id!==m.id); renderCal(k); refreshCounts(k); renderConf(k); }
     });
   };
   pq.oninput = ()=>{ clearTimeout(pq._x); pq._x=setTimeout(paint,140); };
