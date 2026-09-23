@@ -318,6 +318,9 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .confit .cw{font-size:12px;font-weight:600;color:var(--ink);margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .confit .cw .ckind{font-size:9.5px}
 .confit .rgn{font-size:9.5px;font-weight:700;letter-spacing:.05em;border-radius:4px;padding:2px 5px;background:#fff;color:var(--mut);margin-left:auto}
+.confbox.decl{border-left-color:var(--s-dec);margin:16px 0 0}
+.confbox.decl .cc{background:#fbe9e8;color:#8f2424}
+.confbox.decl .confit .cw{font-weight:400;color:var(--mut);font-size:12px;display:block;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 
 /* ================= timeline ================= */
 .tlbox{padding:16px 20px 18px;margin-top:16px}
@@ -990,6 +993,7 @@ function renderHome(){
     + '<div><div class="pt">Dubai, meetings from Monday 30 November</div><div class="pd">Suggested departure from Brazil on the Saturday 28 November overnight flight.</div></div>'
     + '<div><div class="pt">China, week of 7 December</div><div class="pd">Depart the UAE on Friday 4 or Saturday 5 December, depending on preference and flight availability.</div></div>'
     + '</div></div>';
+  h += '<div id="declzone">'+declHtml(KEYS, true)+'</div>';
   return h;
 }
 function bindHome(){
@@ -1044,8 +1048,31 @@ function confHtml(keys, showRegion){
   }).join('') + '</div>';
   return h + '</div>';
 }
+function declHtml(keys, showRegion){
+  const items = [];
+  keys.forEach(k=>rowsOf(k).forEach(x=>{ const r = rec(x.i); if (r.s==='declined') items.push({ k, x, r }); }));
+  items.sort((a,b)=> String(b.r.t).localeCompare(String(a.r.t)) || a.x.o.localeCompare(b.x.o));
+  let h = '<div class="card confbox decl"><div class="ch"><h4>Declined</h4><span class="cc">'+items.length+'</span>'
+    + '<span class="dnote" style="margin:0 0 0 auto">Names that said no. Their card keeps the reason in the notes.</span></div>';
+  if (!items.length) h += '<div class="cempty">No declines so far.</div>';
+  else h += '<div class="conflist">' + items.map(it=>{
+    const ct = contactOf(it.x);
+    const why = (it.r.n||'').replace(/^Sent [^.]*\.\s*/,'').replace(/^Not sent\.\s*/,'').trim();
+    return '<button type="button" class="confit" data-k="'+it.k+'" data-id="'+esc(it.x.i)+'" style="--sc:var(--s-dec)"><i></i><span style="min-width:0;flex:1">'
+      + '<span class="co">'+esc(it.x.o)+'</span>'
+      + (ct.k ? '<span class="cm">'+esc(ct.k)+(ct.kt?', '+esc(ct.kt):'')+(it.r.t?' · '+esc(fmtWhen(it.r.t,false)):'')+'</span>' : '')
+      + (why ? '<span class="cw" title="'+esc(why)+'">'+esc(why)+'</span>' : '')
+      + '</span>' + (showRegion ? '<span class="rgn">'+RGN[it.k]+'</span>' : '') + '</button>';
+  }).join('') + '</div>';
+  return h + '</div>';
+}
 function bindConf(){ document.querySelectorAll('.confit').forEach(b=>b.onclick=()=>openCard(b.dataset.k, b.dataset.id)); }
-function renderConf(k){ const z = $('confzone'); if (!z) return; z.innerHTML = confHtml(k==='home'?KEYS:[k], k==='home'); bindConf(); }
+function renderConf(k){
+  const keys = k==='home' ? KEYS : [k];
+  const z = $('confzone'); if (z) z.innerHTML = confHtml(keys, k==='home');
+  const d = $('declzone'); if (d) d.innerHTML = declHtml(keys, k==='home');
+  bindConf();
+}
 
 /* ---------- milestones timeline ---------- */
 const MKIND = { outreach:['Outreach','var(--s-sen)'], call:['Call','var(--s-off)'], meeting:['Meeting scheduled','var(--brand)'], held:['Meeting held','var(--s-met)'], other:['Milestone','var(--soft)'] };
@@ -1166,6 +1193,7 @@ function renderAgendaShell(k){
     h += '<div id="calzone"></div>';
   }
   h += '</div>';
+  h += '<div id="declzone">'+declHtml([k], false)+'</div>';
   return h;
 }
 function bindAgenda(k){
