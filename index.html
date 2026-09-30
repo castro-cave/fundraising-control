@@ -235,6 +235,15 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .mtg .mc{font-size:10.5px;color:var(--mut);margin-top:1px}
 .mtg .mx{position:absolute;top:3px;right:4px;border:0;background:none;color:var(--soft);font-size:13px;line-height:1;padding:2px 4px;border-radius:4px}
 .mtg .mx:hover{background:#fff;color:var(--bad)}
+.slot.fixed{background:#fff7e6;box-shadow:inset 0 0 0 1px #f0d9a8}
+.slot.fixed .fx{font-size:11px;color:#8a5a00;line-height:1.25;padding:2px 4px 0}
+.slot.fixed .fx b{display:block;font-weight:700}
+.slot.fixed .addb{min-height:22px;font-size:13px;color:#c9a35a}
+.slot.fixed .mtg{margin-top:2px}
+.slot.fixed .mtg .mf{font-size:10px;color:#8a5a00;margin-top:2px}
+.cal .dh .d3.fx{color:#8a5a00}
+.calhead .fxleg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#8a5a00}
+.calhead .fxleg i{width:12px;height:12px;border-radius:3px;background:#fff7e6;box-shadow:inset 0 0 0 1px #f0d9a8}
 
 /* ================= modals ================= */
 .ovl{position:fixed;inset:0;background:rgba(20,26,34,.44);z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:9vh 16px 16px}
@@ -302,6 +311,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .ckind.slot{background:var(--fill);color:var(--mut)}
 .dnote{font-size:12px;color:var(--soft);margin-top:6px}
 .tag.ed{background:#eef7e9;color:#2e6b2a}
+.tag.ev{font-weight:700}
 
 /* ================= confirmed meetings block ================= */
 .confbox{padding:16px 20px 14px;margin:0 0 16px;border-left:4px solid var(--s-con)}
@@ -507,9 +517,15 @@ const STATUS = {
 };
 const RANK = {not_started:0,drafted:1,sent:2,awaiting:3,offered:4,tentative:5,confirmed:6,met:7,declined:8};
 const OWNERS = ['XP','CAVE'];
+const EVENT = { registered:{l:'At LAVCA', t:'Registered for LAVCA Week', c:'#e4f6ef', k:'#0c6b4a'}, expected:{l:'LAVCA expected', t:'Expected at LAVCA Week, not registered yet', c:'#fdf4dd', k:'#8a5a00'}, not_attending:{l:'Not at LAVCA', t:'Not attending LAVCA Week', c:'#eef1f4', k:'#6f7d8c'} };
+function evTag(r){ const e = EVENT[r.ev]; return e ? '<span class="tag ev" style="background:'+e.c+';color:'+e.k+'" title="'+e.t+'">'+e.l+'</span>' : ''; }
 const KEYS = ['us','ae','cn'];
 const RGN = {us:'US', ae:'UAE', cn:'CN'};
 const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+/* Fixed events on the trip calendar. They are shown on the affected slots but never block a booking. */
+const FIXED = { us: [ { d:'2026-10-22', hours:['09:00','10:00'], t:'XP breakfast', s:'09:00 to 11:00, hosted by XP Inc. and Headline, venture capital focus' } ], ae:[], cn:[] };
+function fixedOf(k,d,h){ return (FIXED[k]||[]).find(f=>f.d===d && f.hours.includes(h)); }
+function fixedOnDay(k,d){ return (FIXED[k]||[]).filter(f=>f.d===d); }
 const AG = {}; /* filled from the database after sign-in: key -> {name,short,win,note,start,end,rows} */
 
 /* ================= state ================= */
@@ -522,7 +538,7 @@ let rtChannel = null;
 let view = 'home';
 const sub = {us:'targets', ae:'targets', cn:'targets'};
 const filters = {}; const expanded = {}; const sorts = {};
-KEYS.forEach(k=>{ filters[k]={q:'',tier:'',st:'',seg:'',resp:''}; expanded[k]=null; sorts[k]={col:'tier',dir:1}; });
+KEYS.forEach(k=>{ filters[k]={q:'',tier:'',st:'',seg:'',resp:'',ev:''}; expanded[k]=null; sorts[k]={col:'tier',dir:1}; });
 let pendingNote = null; /* {id, val} awaiting flush */
 
 function normalize(s){
@@ -540,7 +556,7 @@ function normalize(s){
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function rec(id){ const r = state.recs[id] || {}; return {s:r.s||'not_started', r:r.r||'XP', n:r.n||'', t:r.t||'', by:r.by||'',
-  ck:r.ck||'', ckt:r.ckt||'', ce:r.ce||'', cp:r.cp||'', cli:r.cli||'', mk:r.mk||'', ma:r.ma||'', mp:r.mp||''}; }
+  ck:r.ck||'', ckt:r.ckt||'', ce:r.ce||'', cp:r.cp||'', cli:r.cli||'', mk:r.mk||'', ma:r.ma||'', mp:r.mp||'', ev:r.ev||''}; }
 /* effective main point of contact: the override saved in the platform, else the base row */
 function contactOf(x){
   const r = rec(x.i);
@@ -552,7 +568,7 @@ function folderFromRow(f){ return { id:f.id, name:f.name, parent:f.parent_id||''
 function docFromRow(d){ return { id:d.id, folder:d.folder_id||'', name:d.name, desc:d.description||'', ver:d.version||'', path:d.path, size:+d.size||0, mime:d.mime||'', inv:d.investor_id||'', by:d.uploaded_by||'', at:d.created_at||'', del:d.deleted_at||'', delBy:d.deleted_by||'' }; }
 function fromRow(r){ return { s:r.status, r:r.owner, n:r.note||'', t:r.updated_at||'', by:r.updated_by||'',
   ck:r.contact_name||'', ckt:r.contact_title||'', ce:r.contact_email||'', cp:r.contact_phone||'', cli:r.contact_linkedin||'',
-  mk:r.mtg_kind||'', ma:r.mtg_at||'', mp:r.mtg_place||'' }; }
+  mk:r.mtg_kind||'', ma:r.mtg_at||'', mp:r.mtg_place||'', ev:r.event_att||'' }; }
 function rowsOf(k){ const ex = new Set(state.excluded); return AG[k].rows.concat(state.added[k]).filter(r=>!ex.has(r.i)); }
 function findRow(k,id){ return AG[k].rows.find(r=>r.i===id) || state.added[k].find(r=>r.i===id); }
 function regionOf(id){ for(const k of KEYS){ if(findRow(k,id)) return k; } return null; }
@@ -662,7 +678,7 @@ async function loadAll(){
   const [ag, inv, rs, ex, mt, ms, fo, dc] = await Promise.all([
     sb.from('agendas').select('*').order('sort_order'),
     sb.from('investors').select('id,region,row,custom,sort_order').order('sort_order'),
-    sb.from('record_state').select('investor_id,status,owner,note,updated_at,updated_by,contact_name,contact_title,contact_email,contact_phone,contact_linkedin,mtg_kind,mtg_at,mtg_place'),
+    sb.from('record_state').select('investor_id,status,owner,note,updated_at,updated_by,contact_name,contact_title,contact_email,contact_phone,contact_linkedin,mtg_kind,mtg_at,mtg_place,event_att'),
     sb.from('excluded').select('investor_id'),
     sb.from('meetings').select('id,region,day,hour,investor_id'),
     sb.from('milestones').select('id,at,title,kind,region,investor_id,created_by'),
@@ -740,7 +756,7 @@ window.addEventListener('beforeunload', e=>{ if (pending>0){ e.preventDefault();
 function flushNote(){
   if (pendingNote){ const p = pendingNote; pendingNote = null; applyEdit(p.id,'n',p.val,false); }
 }
-const COL = { s:'status', r:'owner', n:'note', ck:'contact_name', ckt:'contact_title', ce:'contact_email', cp:'contact_phone', cli:'contact_linkedin', mk:'mtg_kind', ma:'mtg_at', mp:'mtg_place' };
+const COL = { s:'status', r:'owner', n:'note', ck:'contact_name', ckt:'contact_title', ce:'contact_email', cp:'contact_phone', cli:'contact_linkedin', mk:'mtg_kind', ma:'mtg_at', mp:'mtg_place', ev:'event_att' };
 /* repaint whatever is on screen after a local or remote change */
 function repaint(){
   if (view==='home' || view==='docs') render();
@@ -781,7 +797,7 @@ function subscribeRealtime(){
       const typing = pendingNote && pendingNote.id===n.investor_id;
       const inc = fromRow(n);
       if (typing) inc.n = cur.n||'';
-      const same = ['s','r','n','ck','ckt','ce','cp','cli','mk','ma','mp'].every(f=>(cur[f]||'')===(inc[f]||''));
+      const same = ['s','r','n','ck','ckt','ce','cp','cli','mk','ma','mp','ev'].every(f=>(cur[f]||'')===(inc[f]||''));
       if (same) { cur.t = inc.t; cur.by = inc.by; return; }
       state.recs[n.investor_id] = inc;
       repaint();
@@ -842,6 +858,7 @@ async function loadActivity(id){
     else if (a.action==='update' && a.field==='note') what = 'Note updated';
     else if (a.action==='update' && a.field==='contact') what = 'Main contact: '+esc((a.new_value||'').split(' | ').filter(Boolean).slice(0,2).join(', ') || 'reset to the original');
     else if (a.action==='update' && a.field==='meeting') what = 'Meeting details: '+esc(mtgLabel(a.new_value) || 'cleared');
+    else if (a.action==='update' && a.field==='event') what = 'LAVCA Week attendance: '+esc(EVENT[a.new_value] ? EVENT[a.new_value].t : 'not known');
     else what = esc(a.action);
     return '<li><span class="at">'+esc(when)+'</span><span class="who">'+esc((a.user_email||'system').replace(/@.*$/,''))+'</span><span class="what">'+what+'</span></li>';
   }).join('') + '</ul>';
@@ -912,7 +929,7 @@ function renderGlobalSearch(){
   gp.querySelectorAll('.gres').forEach(b=>b.onclick=()=>{ closeGlobal(); gq.value=''; goTo(b.dataset.k, b.dataset.id); });
 }
 function goTo(k, id){
-  filters[k] = {q:'',tier:'',st:'',seg:'',resp:''};
+  filters[k] = {q:'',tier:'',st:'',seg:'',resp:'',ev:''};
   sub[k] = 'targets';
   view = k; render();
   requestAnimationFrame(()=>{
@@ -1183,6 +1200,7 @@ function renderAgendaShell(k){
       + '<select id="fst" aria-label="Status filter"><option value="">All statuses</option>'+Object.keys(STATUS).map(s=>'<option value="'+s+'"'+(f.st===s?' selected':'')+'>'+STATUS[s].l+'</option>').join('')+'</select>'
       + (segs.length>1?'<select id="fseg" aria-label="Segment filter"><option value="">All '+segLabel(k)+'</option>'+segs.map(s=>'<option'+(f.seg===s?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select>':'')
       + '<select id="fresp" aria-label="Owner filter"><option value="">All owners</option>'+OWNERS.map(o=>'<option'+(f.resp===o?' selected':'')+'>'+o+'</option>').join('')+'</select>'
+      + (k==='us' ? '<select id="fev" aria-label="LAVCA attendance filter"><option value="">LAVCA: all</option>'+Object.keys(EVENT).map(v=>'<option value="'+v+'"'+(f.ev===v?' selected':'')+'>'+EVENT[v].t+'</option>').join('')+'<option value="__none"'+(f.ev==='__none'?' selected':'')+'>Not known</option></select>' : '')
       + '<button type="button" class="clr" id="fclr">Clear</button>'
       + '<span class="cnt" id="fcnt"></span>'
       + '<button type="button" class="btn pri" id="addbtn">Add investor</button>'
@@ -1211,7 +1229,8 @@ function bindAgenda(k){
   $('fst').onchange = e=>{ f.st=e.target.value; rr(); };
   if ($('fseg')) $('fseg').onchange = e=>{ f.seg=e.target.value; rr(); };
   $('fresp').onchange = e=>{ f.resp=e.target.value; rr(); };
-  $('fclr').onclick = ()=>{ filters[k]={q:'',tier:'',st:'',seg:'',resp:''}; render(); };
+  if ($('fev')) $('fev').onchange = e=>{ f.ev=e.target.value; rr(); };
+  $('fclr').onclick = ()=>{ filters[k]={q:'',tier:'',st:'',seg:'',resp:'',ev:''}; render(); };
   $('addbtn').onclick = ()=>openAddModal(k);
 }
 function refreshCounts(k){
@@ -1220,7 +1239,8 @@ function refreshCounts(k){
   if ($('kpis')) $('kpis').innerHTML =
     tile(s.n,'Targets') + (s.tierA?tile(s.tierA,'Tier A'):'')
     + tile(s.contacted,'Contacted') + tile(s.engaged,'Engaged')
-    + tile(s.booked,'Booked') + tile(s.held,'Held');
+    + tile(s.booked,'Booked') + tile(s.held,'Held')
+    + (k==='us' ? tile(rowsOf(k).filter(x=>rec(x.i).ev==='registered').length + '<span style="font-size:13px;font-weight:500;color:var(--mut)"> +'+rowsOf(k).filter(x=>rec(x.i).ev==='expected').length+' expected</span>','At LAVCA Week') : '');
   if ($('abar')) $('abar').innerHTML = sbarHtml(rowsOf(k)) + legendHtml(rowsOf(k));
   if ($('calcount')) $('calcount').textContent = state.mtgs[k].length ? ' ('+state.mtgs[k].length+')' : '';
 }
@@ -1234,6 +1254,7 @@ function applyFilters(k){
     if (f.st && r.s!==f.st) return false;
     if (f.seg && x.g!==f.seg) return false;
     if (f.resp && r.r!==f.resp) return false;
+    if (f.ev && (f.ev==='__none' ? !!r.ev : r.ev!==f.ev)) return false;
     if (q){ const hay=(x.o+' '+(x.aka||'')+' '+(x.k||'')+' '+(x.y||'')+' '+(x.c||'')).toLowerCase(); if(hay.indexOf(q)<0) return false; }
     return true;
   });
@@ -1349,6 +1370,10 @@ function renderCard(first){
       + (!hasM ? '<span class="mutcell">No format or date yet.</span>' : '')
       + '</div>'
       + (slot ? '<div class="dnote">Trip calendar: '+esc(fmtWhen(slot.d,false))+' at '+esc(slot.h)+' ('+esc(AG[k].short)+').</div>' : '')
+      + (k==='us' ? '<div class="drow2" style="margin-top:12px"><div><div class="dl">LAVCA Week attendance</div><select class="rsel evsel" data-id="'+esc(x.i)+'"'+(ro?' disabled':'')+' aria-label="LAVCA Week attendance">'
+          + '<option value=""'+(!r.ev?' selected':'')+'>Not known</option>'
+          + Object.keys(EVENT).map(v=>'<option value="'+v+'"'+(r.ev===v?' selected':'')+'>'+EVENT[v].t+'</option>').join('')
+          + '</select></div><span class="dnote" style="margin:0">Whether they will be at the event; separate from a meeting with XP.</span></div>' : '')
       + (r.s!=='confirmed' && r.s!=='met' ? '<div class="dnote">Set the status to Confirmed for this name to appear in the Confirmed meetings block.</div>' : '');
   }
   h += '</div>';
@@ -1393,6 +1418,7 @@ function bindCard(k, x){
   $('dclose').onclick = closeCard;
   d.querySelectorAll('.stsel').forEach(s=>s.onchange = e=>ed(s.dataset.id,'s',e.target.value));
   d.querySelectorAll('.rselc').forEach(s=>s.onchange = e=>ed(s.dataset.id,'r',e.target.value));
+  d.querySelectorAll('.evsel').forEach(s=>s.onchange = e=>{ if (mode==='readonly') return; applyEdits(x.i, { ev:e.target.value }, 'Attendance'); });
   d.querySelectorAll('.notea').forEach(t=>{
     const save = ()=>{ clearTimeout(t._x); if (pendingNote && pendingNote.id===t.dataset.id){ const p=pendingNote; pendingNote=null; applyEdit(p.id,'n',p.val,false); } };
     t.oninput = ()=>{
@@ -1439,7 +1465,7 @@ function renderRows(k){
   flushNote();
   const rows = applyFilters(k);
   const f = filters[k]; const sc = sorts[k];
-  const filtered = f.q||f.tier||f.st||f.seg||f.resp;
+  const filtered = f.q||f.tier||f.st||f.seg||f.resp||f.ev;
   $('fcnt').textContent = rows.length+' of '+rowsOf(k).length;
   const th = (id,lab) => '<th class="sortable" data-s="'+id+'" aria-sort="'+(sc.col===id?(sc.dir>0?'ascending':'descending'):'none')+'">'+lab+(sc.col===id?(sc.dir>0?' &#8595;':' &#8593;'):'')+'</th>';
   const cols = k==='cn' ? 8 : 7;
@@ -1462,6 +1488,7 @@ function renderRows(k){
       + (x.custom?'<span class="tag">Added</span>':'')
       + (x.g && k==='us' ? '<span class="tag">'+esc(x.gShort||x.g)+'</span>':'')
       + (x.bf?'<span class="tag bf">Breakfast</span>':'')
+      + (k==='us' ? evTag(rec(x.i)) : '')
       + '</td>'
       + '<td>'+(x.y?esc(x.y):'<span class="mutcell">-</span>')+'</td>'
       + '<td>'+(x.c?esc(x.c):'<span class="mutcell">-</span>')+'</td>'
@@ -1478,7 +1505,7 @@ function renderRows(k){
 }
 function bindRows(k){
   const z = $('tzone');
-  if ($('eclr')) $('eclr').onclick = ()=>{ filters[k]={q:'',tier:'',st:'',seg:'',resp:''}; render(); };
+  if ($('eclr')) $('eclr').onclick = ()=>{ filters[k]={q:'',tier:'',st:'',seg:'',resp:'',ev:''}; render(); };
   z.querySelectorAll('thead th.sortable').forEach(t=>t.onclick=()=>{
     const s = sorts[k];
     if (s.col===t.dataset.s) s.dir*=-1; else { s.col=t.dataset.s; s.dir=1; }
@@ -1831,26 +1858,33 @@ function renderCal(k){
   const z = $('calzone'); if (!z) return;
   const days = agDays(k);
   const n = state.mtgs[k].length;
-  let h = '<div class="calhead"><span class="cnt">'+(n? n+' meeting'+(n>1?'s':'')+' scheduled.' : 'No meetings scheduled yet.')+' Click a slot to book an investor.</span></div>';
+  const fixedAll = (FIXED[k]||[]).filter(f=>days.some(d=>d.iso===f.d));
+  let h = '<div class="calhead"><span class="cnt">'+(n? n+' meeting'+(n>1?'s':'')+' scheduled.' : 'No meetings scheduled yet.')+' Click a slot to book an investor.</span>'
+    + fixedAll.map(f=>'<span class="fxleg"><i></i>'+esc(f.t)+', '+esc(f.s.split(',')[0])+' (slots stay open)</span>').join('')
+    + '</div>';
   h += '<div class="calscroll"><div class="cal">';
   h += '<div></div>' + days.map(d=>'<div class="dh"><div class="d1">'+d.wd+' '+d.lab+'</div>'
       + (k==='ae' && d.wd==='Fri' ? '<div class="d3">Possible departure day</div>' : '')
+      + fixedOnDay(k,d.iso).map(f=>'<div class="d3 fx">'+esc(f.t)+' '+esc(f.s.split(',')[0])+'</div>').join('')
       + '</div>').join('');
   for (const hh of HOURS){
     h += '<div class="hh">'+hh+'</div>';
     for (const d of days){
       const m = mtgOf(k,d.iso,hh);
+      const fx = fixedOf(k,d.iso,hh);
+      const fxHead = fx ? '<div class="fx" title="'+esc(fx.s)+'"><b>'+esc(fx.t)+'</b>'+(hh===fx.hours[0]?esc(fx.s.split(',')[0]):'')+'</div>' : '';
       if (m){
         const row = findRow(k,m.inv);
         const st = row ? STATUS[rec(row.i).s] : STATUS.not_started;
-        h += '<div class="slot"><div class="mtg" style="--sc:'+st.c+'">'
+        h += '<div class="slot'+(fx?' fixed':'')+'">'+fxHead+'<div class="mtg" style="--sc:'+st.c+'">'
           + '<div class="mo"><i></i><span class="mopen" data-id="'+esc(m.inv)+'" style="cursor:pointer">'+esc(row?row.o:'(removed name)')+'</span></div>'
           + (row && contactOf(row).k ? '<div class="mc">'+esc(contactOf(row).k)+'</div>':'')
+          + (fx ? '<div class="mf">During the '+esc(fx.t)+'</div>' : '')
           + (mode!=='readonly'?'<button type="button" class="mx" data-m="'+esc(m.id)+'" aria-label="Remove meeting">&#215;</button>':'')
           + '</div></div>';
       } else {
-        h += '<div class="slot">'+(mode!=='readonly'
-          ? '<button type="button" class="addb" data-d="'+d.iso+'" data-h="'+hh+'" aria-label="Book '+d.wd+' '+d.lab+' at '+hh+'">+</button>'
+        h += '<div class="slot'+(fx?' fixed':'')+'">'+fxHead+(mode!=='readonly'
+          ? '<button type="button" class="addb" data-d="'+d.iso+'" data-h="'+hh+'" aria-label="Book '+d.wd+' '+d.lab+' at '+hh+(fx?' during the '+fx.t:'')+'">+</button>'
           : '')+'</div>';
       }
     }
