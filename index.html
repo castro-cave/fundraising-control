@@ -235,12 +235,15 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .mtg .mc{font-size:10.5px;color:var(--mut);margin-top:1px}
 .mtg .mx{position:absolute;top:3px;right:4px;border:0;background:none;color:var(--soft);font-size:13px;line-height:1;padding:2px 4px;border-radius:4px}
 .mtg .mx:hover{background:#fff;color:var(--bad)}
-.slot.fixed{background:#fff7e6;box-shadow:inset 0 0 0 1px #f0d9a8}
-.slot.fixed .fx{font-size:11px;color:#8a5a00;line-height:1.25;padding:2px 4px 0}
-.slot.fixed .fx b{display:block;font-weight:700}
-.slot.fixed .addb{min-height:22px;font-size:13px;color:#c9a35a}
-.slot.fixed .mtg{margin-top:2px}
-.slot.fixed .mtg .mf{font-size:10px;color:#8a5a00;margin-top:2px}
+.slot.fixed{background:#fff7e6;box-shadow:inset 0 0 0 1px #f0d9a8;display:flex;flex-direction:column;gap:4px;padding:6px}
+.slot.fixed .fxh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:0 2px;color:#8a5a00}
+.slot.fixed .fxh b{font-size:12px;font-weight:700}
+.slot.fixed .fxh span{font-size:10.5px;white-space:nowrap}
+.slot.fixed .fxd{font-size:10px;color:#a37a2e;padding:0 2px;margin-top:-2px}
+.slot.fixed .fxs{display:flex;align-items:center;gap:6px;flex:1;background:rgba(255,255,255,.75);border-radius:6px;padding:2px 3px 2px 8px;min-height:32px}
+.slot.fixed .fxs .fxt{font-size:10px;color:#b0812c;font-variant-numeric:tabular-nums;width:34px;flex:none}
+.slot.fixed .fxs .addb{min-height:26px;height:auto;flex:1;color:#c9a35a;font-size:14px}
+.slot.fixed .fxs .mtg{flex:1;margin:0;padding:4px 20px 4px 8px}
 .cal .dh .d3.fx{color:#8a5a00}
 .calhead .fxleg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#8a5a00}
 .calhead .fxleg i{width:12px;height:12px;border-radius:3px;background:#fff7e6;box-shadow:inset 0 0 0 1px #f0d9a8}
@@ -1860,32 +1863,42 @@ function renderCal(k){
   const n = state.mtgs[k].length;
   const fixedAll = (FIXED[k]||[]).filter(f=>days.some(d=>d.iso===f.d));
   let h = '<div class="calhead"><span class="cnt">'+(n? n+' meeting'+(n>1?'s':'')+' scheduled.' : 'No meetings scheduled yet.')+' Click a slot to book an investor.</span>'
-    + fixedAll.map(f=>'<span class="fxleg"><i></i>'+esc(f.t)+', '+esc(f.s.split(',')[0])+' (slots stay open)</span>').join('')
+    + fixedAll.map(f=>'<span class="fxleg"><i></i>'+esc(f.t)+', '+esc(new Date(f.d+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}))+', '+esc(f.s.split(',')[0])+'. Meetings can still be booked during it.</span>').join('')
     + '</div>';
   h += '<div class="calscroll"><div class="cal">';
   h += '<div></div>' + days.map(d=>'<div class="dh"><div class="d1">'+d.wd+' '+d.lab+'</div>'
       + (k==='ae' && d.wd==='Fri' ? '<div class="d3">Possible departure day</div>' : '')
-      + fixedOnDay(k,d.iso).map(f=>'<div class="d3 fx">'+esc(f.t)+' '+esc(f.s.split(',')[0])+'</div>').join('')
+      + fixedOnDay(k,d.iso).map(f=>'<div class="d3 fx">'+esc(f.t)+', '+esc(f.s.split(',')[0])+'</div>').join('')
       + '</div>').join('');
+  const cell = (d, hh, m, inner) => {
+    if (m){
+      const row = findRow(k,m.inv);
+      const st = row ? STATUS[rec(row.i).s] : STATUS.not_started;
+      return '<div class="mtg" style="--sc:'+st.c+'">'
+        + '<div class="mo"><i></i><span class="mopen" data-id="'+esc(m.inv)+'" style="cursor:pointer">'+esc(row?row.o:'(removed name)')+'</span></div>'
+        + (row && contactOf(row).k ? '<div class="mc">'+esc(contactOf(row).k)+'</div>':'')
+        + (mode!=='readonly'?'<button type="button" class="mx" data-m="'+esc(m.id)+'" aria-label="Remove meeting">&#215;</button>':'')
+        + '</div>';
+    }
+    return mode!=='readonly'
+      ? '<button type="button" class="addb" data-d="'+d.iso+'" data-h="'+hh+'" aria-label="Book '+d.wd+' '+d.lab+' at '+hh+(inner?' during the '+inner:'')+'">+</button>'
+      : '';
+  };
   for (const hh of HOURS){
     h += '<div class="hh">'+hh+'</div>';
     for (const d of days){
-      const m = mtgOf(k,d.iso,hh);
       const fx = fixedOf(k,d.iso,hh);
-      const fxHead = fx ? '<div class="fx" title="'+esc(fx.s)+'"><b>'+esc(fx.t)+'</b>'+(hh===fx.hours[0]?esc(fx.s.split(',')[0]):'')+'</div>' : '';
-      if (m){
-        const row = findRow(k,m.inv);
-        const st = row ? STATUS[rec(row.i).s] : STATUS.not_started;
-        h += '<div class="slot'+(fx?' fixed':'')+'">'+fxHead+'<div class="mtg" style="--sc:'+st.c+'">'
-          + '<div class="mo"><i></i><span class="mopen" data-id="'+esc(m.inv)+'" style="cursor:pointer">'+esc(row?row.o:'(removed name)')+'</span></div>'
-          + (row && contactOf(row).k ? '<div class="mc">'+esc(contactOf(row).k)+'</div>':'')
-          + (fx ? '<div class="mf">During the '+esc(fx.t)+'</div>' : '')
-          + (mode!=='readonly'?'<button type="button" class="mx" data-m="'+esc(m.id)+'" aria-label="Remove meeting">&#215;</button>':'')
-          + '</div></div>';
+      if (fx && hh!==fx.hours[0]) continue;               /* covered by the block that starts at the first hour */
+      if (fx){
+        /* one amber block spanning the hours of the fixed event, with a bookable sub-slot per hour */
+        const parts = fx.s.split(',');
+        h += '<div class="slot fixed" style="grid-row:span '+fx.hours.length+'" title="'+esc(fx.s)+'">'
+          + '<div class="fxh"><b>'+esc(fx.t)+'</b><span>'+esc(parts[0])+'</span></div>'
+          + (parts.length>1 ? '<div class="fxd">'+esc(parts.slice(1).join(',').trim())+'</div>' : '')
+          + fx.hours.map(x=>'<div class="fxs"><span class="fxt">'+x+'</span>'+cell(d, x, mtgOf(k,d.iso,x), fx.t)+'</div>').join('')
+          + '</div>';
       } else {
-        h += '<div class="slot'+(fx?' fixed':'')+'">'+fxHead+(mode!=='readonly'
-          ? '<button type="button" class="addb" data-d="'+d.iso+'" data-h="'+hh+'" aria-label="Book '+d.wd+' '+d.lab+' at '+hh+(fx?' during the '+fx.t:'')+'">+</button>'
-          : '')+'</div>';
+        h += '<div class="slot">'+cell(d, hh, mtgOf(k,d.iso,hh), '')+'</div>';
       }
     }
   }
