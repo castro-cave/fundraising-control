@@ -251,6 +251,10 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .slot.fixed .fxn{border:0;background:rgba(255,255,255,.8);border-radius:6px;padding:5px 8px;font-size:11.5px;font-weight:600;text-align:left;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:6px}
 .slot.fixed .fxn::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--s-bkf);flex:none}
 .slot.fixed .fxn:hover{background:#fff}
+.bktag{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#8a5a00;background:#fff3d6;border-radius:9px;padding:1px 7px;vertical-align:1px}
+.xbrow{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12px;color:var(--mut);line-height:1.35;cursor:pointer}
+.xbrow input{margin-top:3px;accent-color:var(--s-bkf)}
+.xbrow b{color:var(--ink);font-weight:600}
 .cal .dh .d3.fx{color:#8a5a00}
 .calhead .fxleg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#8a5a00}
 .calhead .fxleg i{width:12px;height:12px;border-radius:3px;background:#fff7e6;box-shadow:inset 0 0 0 1px #f0d9a8}
@@ -531,12 +535,14 @@ const RANK = {not_started:0,drafted:1,sent:2,awaiting:3,offered:4,tentative:5,co
 const OWNERS = ['XP','CAVE'];
 const EVENT = { registered:{l:'At LAVCA', t:'Registered for LAVCA Week', c:'#e4f6ef', k:'#0c6b4a'}, expected:{l:'LAVCA expected', t:'Expected at LAVCA Week, not registered yet', c:'#fdf4dd', k:'#8a5a00'}, not_attending:{l:'Not at LAVCA', t:'Not attending LAVCA Week', c:'#eef1f4', k:'#6f7d8c'} };
 function evTag(r){ const e = EVENT[r.ev]; return e ? '<span class="tag ev" style="background:'+e.c+';color:'+e.k+'" title="'+e.t+'">'+e.l+'</span>' : ''; }
+function xbTag(r){ return (r.xb && r.s!=='breakfast') ? '<span class="tag ev" style="background:#fff3d6;color:#8a5a00" title="Also attending the XP breakfast on 21 Oct">+ XP breakfast</span>' : ''; }
 const KEYS = ['us','ae','cn'];
 const RGN = {us:'US', ae:'UAE', cn:'CN'};
 const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
 /* Fixed events on the trip calendar. They are shown on the affected slots but never block a booking. */
 const FIXED = { us: [ { d:'2026-10-21', hours:['09:00','10:00'], t:'XP breakfast', s:'09:00 to 11:00, XP New York office, hosted with Headline', status:'breakfast' } ], ae:[], cn:[] };
 const BREAKFAST = FIXED.us[0];
+function atBreakfast(r){ return r.s==='breakfast' || !!r.xb; }
 function fixedOf(k,d,h){ return (FIXED[k]||[]).find(f=>f.d===d && f.hours.includes(h)); }
 function fixedOnDay(k,d){ return (FIXED[k]||[]).filter(f=>f.d===d); }
 const AG = {}; /* filled from the database after sign-in: key -> {name,short,win,note,start,end,rows} */
@@ -569,7 +575,7 @@ function normalize(s){
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function rec(id){ const r = state.recs[id] || {}; return {s:r.s||'not_started', r:r.r||'XP', n:r.n||'', t:r.t||'', by:r.by||'',
-  ck:r.ck||'', ckt:r.ckt||'', ce:r.ce||'', cp:r.cp||'', cli:r.cli||'', mk:r.mk||'', ma:r.ma||'', mp:r.mp||'', ev:r.ev||''}; }
+  ck:r.ck||'', ckt:r.ckt||'', ce:r.ce||'', cp:r.cp||'', cli:r.cli||'', mk:r.mk||'', ma:r.ma||'', mp:r.mp||'', ev:r.ev||'', xb:!!r.xb}; }
 /* effective main point of contact: the override saved in the platform, else the base row */
 function contactOf(x){
   const r = rec(x.i);
@@ -581,7 +587,7 @@ function folderFromRow(f){ return { id:f.id, name:f.name, parent:f.parent_id||''
 function docFromRow(d){ return { id:d.id, folder:d.folder_id||'', name:d.name, desc:d.description||'', ver:d.version||'', path:d.path, size:+d.size||0, mime:d.mime||'', inv:d.investor_id||'', by:d.uploaded_by||'', at:d.created_at||'', del:d.deleted_at||'', delBy:d.deleted_by||'' }; }
 function fromRow(r){ return { s:r.status, r:r.owner, n:r.note||'', t:r.updated_at||'', by:r.updated_by||'',
   ck:r.contact_name||'', ckt:r.contact_title||'', ce:r.contact_email||'', cp:r.contact_phone||'', cli:r.contact_linkedin||'',
-  mk:r.mtg_kind||'', ma:r.mtg_at||'', mp:r.mtg_place||'', ev:r.event_att||'' }; }
+  mk:r.mtg_kind||'', ma:r.mtg_at||'', mp:r.mtg_place||'', ev:r.event_att||'', xb:!!r.xp_breakfast }; }
 function rowsOf(k){ const ex = new Set(state.excluded); return AG[k].rows.concat(state.added[k]).filter(r=>!ex.has(r.i)); }
 function findRow(k,id){ return AG[k].rows.find(r=>r.i===id) || state.added[k].find(r=>r.i===id); }
 function regionOf(id){ for(const k of KEYS){ if(findRow(k,id)) return k; } return null; }
@@ -691,7 +697,7 @@ async function loadAll(){
   const [ag, inv, rs, ex, mt, ms, fo, dc] = await Promise.all([
     sb.from('agendas').select('*').order('sort_order'),
     sb.from('investors').select('id,region,row,custom,sort_order').order('sort_order'),
-    sb.from('record_state').select('investor_id,status,owner,note,updated_at,updated_by,contact_name,contact_title,contact_email,contact_phone,contact_linkedin,mtg_kind,mtg_at,mtg_place,event_att'),
+    sb.from('record_state').select('investor_id,status,owner,note,updated_at,updated_by,contact_name,contact_title,contact_email,contact_phone,contact_linkedin,mtg_kind,mtg_at,mtg_place,event_att,xp_breakfast'),
     sb.from('excluded').select('investor_id'),
     sb.from('meetings').select('id,region,day,hour,investor_id'),
     sb.from('milestones').select('id,at,title,kind,region,investor_id,created_by'),
@@ -769,7 +775,7 @@ window.addEventListener('beforeunload', e=>{ if (pending>0){ e.preventDefault();
 function flushNote(){
   if (pendingNote){ const p = pendingNote; pendingNote = null; applyEdit(p.id,'n',p.val,false); }
 }
-const COL = { s:'status', r:'owner', n:'note', ck:'contact_name', ckt:'contact_title', ce:'contact_email', cp:'contact_phone', cli:'contact_linkedin', mk:'mtg_kind', ma:'mtg_at', mp:'mtg_place', ev:'event_att' };
+const COL = { s:'status', r:'owner', n:'note', ck:'contact_name', ckt:'contact_title', ce:'contact_email', cp:'contact_phone', cli:'contact_linkedin', mk:'mtg_kind', ma:'mtg_at', mp:'mtg_place', ev:'event_att', xb:'xp_breakfast' };
 /* repaint whatever is on screen after a local or remote change */
 function repaint(){
   if (view==='home' || view==='docs') render();
@@ -788,7 +794,7 @@ function applyEdit(id, field, val, rerender){
 function applyEdits(id, obj, label){
   const r = state.recs[id] || (state.recs[id] = {});
   const payload = { investor_id:id };
-  Object.keys(obj).forEach(f=>{ r[f] = obj[f]; payload[COL[f]] = obj[f]===''? null : obj[f]; });
+  Object.keys(obj).forEach(f=>{ r[f] = obj[f]; payload[COL[f]] = (obj[f]==='' && f!=='xb') ? null : obj[f]; });
   r.t = new Date().toISOString(); r.by = me ? me.email : '';
   repaint();
   return persist(label||'Change', ()=>sb.from('record_state').upsert(payload, { onConflict:'investor_id' }));
@@ -810,7 +816,7 @@ function subscribeRealtime(){
       const typing = pendingNote && pendingNote.id===n.investor_id;
       const inc = fromRow(n);
       if (typing) inc.n = cur.n||'';
-      const same = ['s','r','n','ck','ckt','ce','cp','cli','mk','ma','mp','ev'].every(f=>(cur[f]||'')===(inc[f]||''));
+      const same = ['s','r','n','ck','ckt','ce','cp','cli','mk','ma','mp','ev','xb'].every(f=>(cur[f]||'')===(inc[f]||''));
       if (same) { cur.t = inc.t; cur.by = inc.by; return; }
       state.recs[n.investor_id] = inc;
       repaint();
@@ -1059,7 +1065,7 @@ function confItems(keys){
     if (r.s==='breakfast'){ at = BREAKFAST.d+'T'+BREAKFAST.hours[0]+':00'; kind = 'in_person'; }
     if (!at && slot) at = slot.d+'T'+slot.h+':00';
     if (!kind && slot) kind = 'in_person';
-    out.push({ k, x, r, at, kind, place: r.s==='breakfast' ? 'XP breakfast, New York' : (r.mp || (slot && !r.ma ? 'Trip calendar slot' : '')), slot:!!slot });
+    out.push({ k, x, r, at, kind, place: r.s==='breakfast' ? 'XP breakfast, New York' : (r.mp || (slot && !r.ma ? 'Trip calendar slot' : '')), slot:!!slot, bk: r.s!=='breakfast' && !!r.xb });
   }));
   out.sort((a,b)=> (a.at?0:1)-(b.at?0:1) || String(a.at).localeCompare(String(b.at)) || a.x.o.localeCompare(b.x.o));
   return out;
@@ -1075,7 +1081,7 @@ function confHtml(keys, showRegion){
     return '<button type="button" class="confit" data-k="'+it.k+'" data-id="'+esc(it.x.i)+'" style="--sc:'+st.c+'"><i></i><span style="min-width:0;flex:1">'
       + '<span class="co">'+esc(it.x.o)+'</span>'
       + (ct.k ? '<span class="cm">'+esc(ct.k)+(ct.kt?', '+esc(ct.kt):'')+'</span>' : '')
-      + '<span class="cw">'+kind+(it.at ? '<span>'+esc(fmtWhen(it.at))+'</span>' : '<span class="mutcell">Date to be set</span>')+(it.place?'<span class="mutcell">· '+esc(it.place)+'</span>':'')+'</span>'
+      + '<span class="cw">'+kind+(it.at ? '<span>'+esc(fmtWhen(it.at))+'</span>' : '<span class="mutcell">Date to be set</span>')+(it.place?'<span class="mutcell">· '+esc(it.place)+'</span>':'')+(it.bk?'<span class="bktag">+ XP breakfast</span>':'')+'</span>'
       + '</span>' + (showRegion ? '<span class="rgn">'+RGN[it.k]+'</span>' : '') + '</button>';
   }).join('') + '</div>';
   return h + '</div>';
@@ -1113,6 +1119,7 @@ function tlEvents(){
   KEYS.forEach(k=>rowsOf(k).forEach(x=>{
     const r = rec(x.i); const slot = state.mtgs[k].find(m=>m.inv===x.i);
     if (r.s==='met'){ ev.push({ at:(r.ma||r.t||'').slice(0,10), title:'Meeting held with '+x.o, kind:'held', k, inv:x.i }); return; }
+    if (r.xb && r.s!=='breakfast') ev.push({ at:BREAKFAST.d, title:'XP breakfast with '+x.o, kind:'meeting', k, inv:x.i });
     if (r.s==='breakfast'){ ev.push({ at:BREAKFAST.d, title:'XP breakfast with '+x.o, kind:'meeting', k, inv:x.i }); return; }
     if (r.s==='confirmed' && r.ma){ ev.push({ at:r.ma.slice(0,10), title:(r.mk==='call'?'Call with ':'Meeting with ')+x.o, kind:r.mk==='call'?'call':'meeting', k, inv:x.i }); return; }
     if (slot){ ev.push({ at:slot.d, title:'Meeting scheduled with '+x.o+' ('+slot.h+')', kind:'meeting', k, inv:x.i }); }
@@ -1390,7 +1397,8 @@ function renderCard(first){
       + (k==='us' ? '<div class="drow2" style="margin-top:12px"><div><div class="dl">LAVCA Week attendance</div><select class="rsel evsel" data-id="'+esc(x.i)+'"'+(ro?' disabled':'')+' aria-label="LAVCA Week attendance">'
           + '<option value=""'+(!r.ev?' selected':'')+'>Not known</option>'
           + Object.keys(EVENT).map(v=>'<option value="'+v+'"'+(r.ev===v?' selected':'')+'>'+EVENT[v].t+'</option>').join('')
-          + '</select></div><span class="dnote" style="margin:0">Whether they will be at the event; separate from a meeting with XP.</span></div>' : '')
+          + '</select></div><span class="dnote" style="margin:0">Whether they will be at the event; separate from a meeting with XP.</span></div>'
+          + '<label class="xbrow"><input type="checkbox" class="xbchk" data-id="'+esc(x.i)+'"'+(r.xb?' checked':'')+(ro?' disabled':'')+'> <span><b>Also at the XP breakfast</b>, Wed 21 Oct 09:00 to 11:00. Use this when the name has its own meeting and joins the breakfast as well; names whose only commitment is the breakfast take the status Confirmed XP Breakfast.</span></label>' : '')
       + (r.s!=='confirmed' && r.s!=='met' && r.s!=='breakfast' ? '<div class="dnote">Set the status to Confirmed (or Confirmed XP Breakfast) for this name to appear in the Confirmed meetings block.</div>' : '');
   }
   h += '</div>';
@@ -1436,6 +1444,7 @@ function bindCard(k, x){
   d.querySelectorAll('.stsel').forEach(s=>s.onchange = e=>ed(s.dataset.id,'s',e.target.value));
   d.querySelectorAll('.rselc').forEach(s=>s.onchange = e=>ed(s.dataset.id,'r',e.target.value));
   d.querySelectorAll('.evsel').forEach(s=>s.onchange = e=>{ if (mode==='readonly') return; applyEdits(x.i, { ev:e.target.value }, 'Attendance'); });
+  d.querySelectorAll('.xbchk').forEach(c=>c.onchange = e=>{ if (mode==='readonly') return; applyEdits(x.i, { xb:e.target.checked }, 'XP breakfast'); });
   d.querySelectorAll('.notea').forEach(t=>{
     const save = ()=>{ clearTimeout(t._x); if (pendingNote && pendingNote.id===t.dataset.id){ const p=pendingNote; pendingNote=null; applyEdit(p.id,'n',p.val,false); } };
     t.oninput = ()=>{
@@ -1505,7 +1514,7 @@ function renderRows(k){
       + (x.custom?'<span class="tag">Added</span>':'')
       + (x.g && k==='us' ? '<span class="tag">'+esc(x.gShort||x.g)+'</span>':'')
       + (x.bf?'<span class="tag bf">Breakfast</span>':'')
-      + (k==='us' ? evTag(rec(x.i)) : '')
+      + (k==='us' ? evTag(rec(x.i))+xbTag(rec(x.i)) : '')
       + '</td>'
       + '<td>'+(x.y?esc(x.y):'<span class="mutcell">-</span>')+'</td>'
       + '<td>'+(x.c?esc(x.c):'<span class="mutcell">-</span>')+'</td>'
@@ -1906,7 +1915,7 @@ function renderCal(k){
       if (fx){
         /* one amber block spanning the hours of the fixed event, with a bookable sub-slot per hour */
         const parts = fx.s.split(',');
-        const guests = rowsOf(k).filter(x=>rec(x.i).s===fx.status).sort((a,b)=>a.o.localeCompare(b.o));
+        const guests = rowsOf(k).filter(x=>atBreakfast(rec(x.i))).sort((a,b)=>a.o.localeCompare(b.o));
         const legacy = fx.hours.map(x=>mtgOf(k,d.iso,x)).filter(Boolean);   /* bookings made before the slots were closed */
         h += '<div class="slot fixed" style="grid-row:span '+fx.hours.length+'" title="'+esc(fx.s)+'">'
           + '<div class="fxh"><b>'+esc(fx.t)+'</b><span>'+esc(parts[0])+'</span></div>'
