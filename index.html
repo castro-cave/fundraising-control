@@ -343,6 +343,15 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .confit .cw .ckind{font-size:9.5px}
 .confit .rgn{font-size:9.5px;font-weight:700;letter-spacing:.05em;border-radius:4px;padding:2px 5px;background:#fff;color:var(--mut);margin-left:auto}
 .confbox.decl{border-left-color:var(--s-dec);margin:16px 0 0}
+.conflist.row4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1100px){.conflist.row4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.conflist.row4{grid-template-columns:minmax(0,1fr)}}
+.confbox .ch.tog{cursor:pointer;user-select:none}
+.ctog{margin-left:auto;flex:none;border:1px solid var(--line);background:#fff;color:var(--ink);font:inherit;font-size:11.5px;font-weight:600;border-radius:999px;padding:4px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.ctog:hover{background:var(--fill)}
+.ctog b{display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid currentColor;transition:transform .15s}
+.ctog.open b{transform:rotate(180deg)}
+.confbox .ch .dnote.ctnote{margin:0 0 0 4px}
 .confbox.decl .cc{background:#fbe9e8;color:#8f2424}
 .confbox.decl .confit .cw{font-weight:400;color:var(--mut);font-size:12px;display:block;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 
@@ -694,7 +703,7 @@ async function loadMember(){
   return { id:user.id, email:data.email||user.email, name:data.name||'', team:data.team||'XP', can_edit:!!data.can_edit, member:true };
 }
 async function loadAll(){
-  const [ag, inv, rs, ex, mt, ms, fo, dc] = await Promise.all([
+  const [ag, inv, rs, ex, mt, ms, fo, dc, al] = await Promise.all([
     sb.from('agendas').select('*').order('sort_order'),
     sb.from('investors').select('id,region,row,custom,sort_order').order('sort_order'),
     sb.from('record_state').select('investor_id,status,owner,note,updated_at,updated_by,contact_name,contact_title,contact_email,contact_phone,contact_linkedin,mtg_kind,mtg_at,mtg_place,event_att,xp_breakfast'),
@@ -703,6 +712,7 @@ async function loadAll(){
     sb.from('milestones').select('id,at,title,kind,region,investor_id,created_by'),
     sb.from('doc_folders').select('id,name,parent_id,sort_order,created_by').order('sort_order'),
     sb.from('documents').select('id,folder_id,name,description,version,path,size,mime,investor_id,uploaded_by,created_at,deleted_at,deleted_by').order('created_at'),
+    sb.from('activity_log').select('investor_id,at,new_value').eq('field','status').in('new_value',['confirmed','breakfast','met','declined']),
   ]);
   const err = [ag,inv,rs,ex,mt,ms,fo,dc].find(r=>r.error);
   if (err) throw err.error;
@@ -720,6 +730,12 @@ async function loadAll(){
   s.ms = (ms.data||[]).map(m=>({ id:m.id, at:m.at, title:m.title, kind:m.kind||'other', region:m.region||'', inv:m.investor_id||'', by:m.created_by||'' }));
   s.folders = (fo.data||[]).map(folderFromRow);
   s.docs = (dc.data||[]).map(docFromRow);
+  /* when each name last became confirmed (or declined), from the activity log; used to order the latest ones first */
+  s.confAt = {}; s.declAt = {};
+  ((al && al.data)||[]).forEach(a=>{
+    const box = a.new_value==='declined' ? s.declAt : s.confAt;
+    if (!box[a.investor_id] || String(a.at) > String(box[a.investor_id])) box[a.investor_id] = a.at;
+  });
   state = s;
 }
 async function enterApp(){
@@ -786,6 +802,7 @@ function applyEdit(id, field, val, rerender){
   const r = state.recs[id] || (state.recs[id] = {});
   if ((r[field]||'')===(val||'')) return;
   r[field] = val; r.t = new Date().toISOString(); r.by = me ? me.email : '';
+  if (field==='s') markStatusAt(id, val, r.t);
   if (rerender) repaint();
   const payload = { investor_id:id }; payload[COL[field]] = val;
   return persist('Change', ()=>sb.from('record_state').upsert(payload, { onConflict:'investor_id' }));
@@ -818,6 +835,7 @@ function subscribeRealtime(){
       if (typing) inc.n = cur.n||'';
       const same = ['s','r','n','ck','ckt','ce','cp','cli','mk','ma','mp','ev','xb'].every(f=>(cur[f]||'')===(inc[f]||''));
       if (same) { cur.t = inc.t; cur.by = inc.by; return; }
+      if ((cur.s||'')!==(inc.s||'')) markStatusAt(n.investor_id, inc.s, inc.t);
       state.recs[n.investor_id] = inc;
       repaint();
     })
@@ -1054,6 +1072,20 @@ function mtgLabel(v){
   const k = p[0]==='call' ? 'Call' : (p[0]==='in_person' ? 'In person' : '');
   return [k, p[1] ? fmtWhen(p[1]) : '', p[2]||''].filter(Boolean).join(', ');
 }
+function markStatusAt(id, s, at){
+  if (!state.confAt) { state.confAt = {}; state.declAt = {}; }
+  if (s==='confirmed' || s==='breakfast' || s==='met') state.confAt[id] = at;
+  else if (s==='declined') state.declAt[id] = at;
+}
+/* collapsed blocks on the overview: one row with the latest names, click to expand */
+const LATEST_N = 4;
+const boxOpen = { conf:false, decl:false };
+function whenConfirmed(it, box){ const m = (box==='decl' ? state.declAt : state.confAt) || {}; return m[it.x.i] || it.r.t || ''; }
+function latestOf(items, box){ return items.slice().sort((a,b)=>String(whenConfirmed(b,box)).localeCompare(String(whenConfirmed(a,box))) || a.x.o.localeCompare(b.x.o)).slice(0, LATEST_N); }
+function togHtml(box, total, open){
+  if (total <= LATEST_N) return '';
+  return '<button type="button" class="ctog'+(open?' open':'')+'" data-box="'+box+'" aria-expanded="'+(open?'true':'false')+'">'+(open ? 'Show latest '+LATEST_N : 'Show all '+total)+'<b></b></button>';
+}
 /* one item per name that is confirmed, held, or booked in the trip calendar */
 function confItems(keys){
   const out = [];
@@ -1071,29 +1103,36 @@ function confItems(keys){
   return out;
 }
 function confHtml(keys, showRegion){
-  const items = confItems(keys);
-  let h = '<div class="card confbox"><div class="ch"><h4>Confirmed meetings</h4><span class="cc">'+items.length+'</span>'
-    + '<span class="dnote" style="margin:0 0 0 auto">Names set to Confirmed, Confirmed XP Breakfast or Meeting held, plus trip calendar bookings.</span></div>';
-  if (!items.length) h += '<div class="cempty">Nothing confirmed yet. Set a name to Confirmed in its card and add whether it is a call or an in-person meeting, with the date.</div>';
-  else h += '<div class="conflist">' + items.map(it=>{
+  const all = confItems(keys);
+  const open = boxOpen.conf || all.length <= LATEST_N;
+  const items = open ? all : latestOf(all, 'conf');
+  const tog = togHtml('conf', all.length, open);
+  let h = '<div class="card confbox"><div class="ch'+(tog?' tog':'')+'" data-box="conf"><h4>Confirmed meetings</h4><span class="cc">'+all.length+'</span>'
+    + '<span class="dnote ctnote">'+(open ? 'Names set to Confirmed, Confirmed XP Breakfast or Meeting held, plus trip calendar bookings, in date order.' : 'The '+LATEST_N+' most recent confirmations. Expand to see all '+all.length+' in date order.')+'</span>'+tog+'</div>';
+  if (!all.length) h += '<div class="cempty">Nothing confirmed yet. Set a name to Confirmed in its card and add whether it is a call or an in-person meeting, with the date.</div>';
+  else h += '<div class="conflist'+(open?'':' row4')+'">' + items.map(it=>{
     const st = STATUS[it.r.s]; const ct = contactOf(it.x);
     const kind = it.kind==='call' ? '<span class="ckind call">Call</span>' : (it.kind==='in_person' ? '<span class="ckind inp">In person</span>' : '');
     return '<button type="button" class="confit" data-k="'+it.k+'" data-id="'+esc(it.x.i)+'" style="--sc:'+st.c+'"><i></i><span style="min-width:0;flex:1">'
       + '<span class="co">'+esc(it.x.o)+'</span>'
       + (ct.k ? '<span class="cm">'+esc(ct.k)+(ct.kt?', '+esc(ct.kt):'')+'</span>' : '')
       + '<span class="cw">'+kind+(it.at ? '<span>'+esc(fmtWhen(it.at))+'</span>' : '<span class="mutcell">Date to be set</span>')+(it.place?'<span class="mutcell">· '+esc(it.place)+'</span>':'')+(it.bk?'<span class="bktag">+ XP breakfast</span>':'')+'</span>'
+      + (!open && whenConfirmed(it,'conf') ? '<span class="cm">Confirmed '+esc(fmtWhen(whenConfirmed(it,'conf'), false))+'</span>' : '')
       + '</span>' + (showRegion ? '<span class="rgn">'+RGN[it.k]+'</span>' : '') + '</button>';
   }).join('') + '</div>';
   return h + '</div>';
 }
 function declHtml(keys, showRegion){
-  const items = [];
-  keys.forEach(k=>rowsOf(k).forEach(x=>{ const r = rec(x.i); if (r.s==='declined') items.push({ k, x, r }); }));
-  items.sort((a,b)=> String(b.r.t).localeCompare(String(a.r.t)) || a.x.o.localeCompare(b.x.o));
-  let h = '<div class="card confbox decl"><div class="ch"><h4>Declined</h4><span class="cc">'+items.length+'</span>'
-    + '<span class="dnote" style="margin:0 0 0 auto">Names that said no. Their card keeps the reason in the notes.</span></div>';
-  if (!items.length) h += '<div class="cempty">No declines so far.</div>';
-  else h += '<div class="conflist">' + items.map(it=>{
+  const all = [];
+  keys.forEach(k=>rowsOf(k).forEach(x=>{ const r = rec(x.i); if (r.s==='declined') all.push({ k, x, r }); }));
+  all.sort((a,b)=> String(whenConfirmed(b,'decl')).localeCompare(String(whenConfirmed(a,'decl'))) || a.x.o.localeCompare(b.x.o));
+  const open = boxOpen.decl || all.length <= LATEST_N;
+  const items = open ? all : all.slice(0, LATEST_N);
+  const tog = togHtml('decl', all.length, open);
+  let h = '<div class="card confbox decl"><div class="ch'+(tog?' tog':'')+'" data-box="decl"><h4>Declined</h4><span class="cc">'+all.length+'</span>'
+    + '<span class="dnote ctnote">'+(open ? 'Names that said no, most recent first. Their card keeps the reason in the notes.' : 'The '+LATEST_N+' most recent declines. Expand to see all '+all.length+'.')+'</span>'+tog+'</div>';
+  if (!all.length) h += '<div class="cempty">No declines so far.</div>';
+  else h += '<div class="conflist'+(open?'':' row4')+'">' + items.map(it=>{
     const ct = contactOf(it.x);
     const why = (it.r.n||'').replace(/^Sent [^.]*\.\s*/,'').replace(/^Not sent\.\s*/,'').trim();
     return '<button type="button" class="confit" data-k="'+it.k+'" data-id="'+esc(it.x.i)+'" style="--sc:var(--s-dec)"><i></i><span style="min-width:0;flex:1">'
@@ -1104,7 +1143,12 @@ function declHtml(keys, showRegion){
   }).join('') + '</div>';
   return h + '</div>';
 }
-function bindConf(){ document.querySelectorAll('.confit').forEach(b=>b.onclick=()=>openCard(b.dataset.k, b.dataset.id)); }
+function bindConf(){
+  document.querySelectorAll('.confit').forEach(b=>b.onclick=()=>openCard(b.dataset.k, b.dataset.id));
+  const tog = box=>{ boxOpen[box] = !boxOpen[box]; renderConf(view); };
+  document.querySelectorAll('.ctog').forEach(b=>b.onclick=e=>{ e.stopPropagation(); tog(b.dataset.box); });
+  document.querySelectorAll('.confbox .ch.tog').forEach(h=>h.onclick=()=>tog(h.dataset.box));
+}
 function renderConf(k){
   const keys = k==='home' ? KEYS : [k];
   const z = $('confzone'); if (z) z.innerHTML = confHtml(keys, k==='home');
