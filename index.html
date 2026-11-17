@@ -223,6 +223,12 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .calhead .cnt{font-size:12.5px;color:var(--mut)}
 .calscroll{overflow-x:auto;padding-bottom:6px}
 .cal{display:grid;grid-template-columns:56px repeat(5,minmax(168px,1fr));gap:4px;min-width:940px}
+.cal .dh .city{margin-top:4px;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#0c6b4a;background:#e4f6ef;border-radius:999px;padding:2px 9px}
+.cal .dh .city.travel{color:var(--mut);background:var(--fill)}
+.cal .dh select.citysel{margin-top:4px;font:inherit;font-size:11px;font-weight:700;color:#0c6b4a;background:#e4f6ef;border:0;border-radius:999px;padding:3px 22px 3px 9px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M0 0h8L4 5z' fill='%230c6b4a'/></svg>");background-repeat:no-repeat;background-position:right 8px center}
+.cal .dh select.citysel.unset{color:#8a5a00;background-color:#fdf4dd}
+.cal .dh select.citysel.travel{color:var(--mut);background-color:var(--fill)}
+.cal .dh select.citysel:focus{outline:2px solid var(--acc);outline-offset:1px}
 .cal .dh{position:sticky;top:0;background:var(--bg);z-index:4;padding:6px 8px 8px;text-align:center}
 .cal .dh .d1{font-size:12.5px;font-weight:700}
 .cal .dh .d2{font-size:10.5px;color:var(--mut)}
@@ -546,7 +552,11 @@ const EVENT = { registered:{l:'At LAVCA', t:'Registered for LAVCA Week', c:'#e4f
 function evTag(r){ const e = EVENT[r.ev]; return e ? '<span class="tag ev" style="background:'+e.c+';color:'+e.k+'" title="'+e.t+'">'+e.l+'</span>' : ''; }
 function xbTag(r){ return (r.xb && r.s!=='breakfast') ? '<span class="tag ev" style="background:#fff3d6;color:#8a5a00" title="Also attending the XP breakfast on 21 Oct">+ XP breakfast</span>' : ''; }
 const KEYS = ['us','ae','cn'];
-const RGN = {us:'US', ae:'UAE', cn:'CN'};
+const RGN = {us:'US', ae:'UAE', cn:'ASIA'};
+/* cities the team can be in on a given day; shown as a selector at the top of each calendar column */
+const CITIES = { ae:['Dubai','Abu Dhabi'], cn:['Seoul','Beijing','Shanghai','Hong Kong'] };
+const TRAVEL = 'Travel day';
+function cityOf(k, iso){ return (state.days && state.days[k] && state.days[k][iso]) || ''; }
 const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
 /* Fixed events on the trip calendar. They are shown on the affected slots but never block a booking. */
 const FIXED = { us: [ { d:'2026-10-21', hours:['09:00','10:00'], t:'XP breakfast', s:'09:00 to 11:00, XP New York office, hosted with Headline', status:'breakfast' } ], ae:[], cn:[] };
@@ -703,7 +713,7 @@ async function loadMember(){
   return { id:user.id, email:data.email||user.email, name:data.name||'', team:data.team||'XP', can_edit:!!data.can_edit, member:true };
 }
 async function loadAll(){
-  const [ag, inv, rs, ex, mt, ms, fo, dc, al] = await Promise.all([
+  const [ag, inv, rs, ex, mt, ms, fo, dc, al, ad] = await Promise.all([
     sb.from('agendas').select('*').order('sort_order'),
     sb.from('investors').select('id,region,row,custom,sort_order').order('sort_order'),
     sb.from('record_state').select('investor_id,status,owner,note,updated_at,updated_by,contact_name,contact_title,contact_email,contact_phone,contact_linkedin,mtg_kind,mtg_at,mtg_place,event_att,xp_breakfast'),
@@ -713,8 +723,9 @@ async function loadAll(){
     sb.from('doc_folders').select('id,name,parent_id,sort_order,created_by').order('sort_order'),
     sb.from('documents').select('id,folder_id,name,description,version,path,size,mime,investor_id,uploaded_by,created_at,deleted_at,deleted_by').order('created_at'),
     sb.from('activity_log').select('investor_id,at,new_value').eq('field','status').in('new_value',['confirmed','breakfast','met','declined']),
+    sb.from('agenda_days').select('region,day,city'),
   ]);
-  const err = [ag,inv,rs,ex,mt,ms,fo,dc].find(r=>r.error);
+  const err = [ag,inv,rs,ex,mt,ms,fo,dc,ad].find(r=>r.error);
   if (err) throw err.error;
   KEYS.forEach(k=>{ AG[k] = { name:'', short:k.toUpperCase(), win:'', note:'', start:'2026-01-01', end:'2026-01-05', rows:[] }; });
   (ag.data||[]).forEach(a=>{ if (AG[a.key]) Object.assign(AG[a.key], { name:a.name, short:a.short, win:a.win||'', note:a.note||'', start:a.start_date, end:a.end_date }); });
@@ -736,6 +747,8 @@ async function loadAll(){
     const box = a.new_value==='declined' ? s.declAt : s.confAt;
     if (!box[a.investor_id] || String(a.at) > String(box[a.investor_id])) box[a.investor_id] = a.at;
   });
+  s.days = { us:{}, ae:{}, cn:{} };
+  ((ad && ad.data)||[]).forEach(d=>{ if (s.days[d.region]) s.days[d.region][d.day] = d.city||''; });
   state = s;
 }
 async function enterApp(){
@@ -838,6 +851,12 @@ function subscribeRealtime(){
       if ((cur.s||'')!==(inc.s||'')) markStatusAt(n.investor_id, inc.s, inc.t);
       state.recs[n.investor_id] = inc;
       repaint();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'agenda_days' }, p=>{
+      const n = p.new; if (!n || !n.region || !state.days || !state.days[n.region]) return;
+      if ((state.days[n.region][n.day]||'')===(n.city||'')) return;
+      state.days[n.region][n.day] = n.city||'';
+      if (view===n.region && sub[view]==='cal') renderCal(view); else if (view==='home') render();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'doc_folders' }, p=>{
       if (p.eventType==='DELETE'){ const id=p.old && p.old.id; state.folders = state.folders.filter(f=>f.id!==id); }
@@ -977,7 +996,7 @@ function goTo(k, id){
 }
 
 /* ================= rendering ================= */
-const NAVS = [['home','Overview'],['us','United States'],['ae','UAE'],['cn','China'],['docs','Documents']];
+const NAVS = [['home','Overview'],['us','United States'],['ae','UAE'],['cn','Asia'],['docs','Documents']];
 function setView(v){ flushNote(); view = v; render(); window.scrollTo({top:0}); }
 function render(){
   flushNote();
@@ -1044,12 +1063,19 @@ function renderHome(){
   h += timelineHtml();
   h += '<div class="secttl">Pipeline funnel</div><div class="funrow">'+KEYS.map(funnelHtml).join('')+'</div>';
   h += '<div class="card planrow"><h4>Travel plan</h4><div class="plan">'
-    + '<div><div class="pt">New York, 19 to 23 October</div><div class="pd">LAVCA Week runs 19 to 21 October; Thursday 22 and Friday 23 reserved for office visits. Wave 1 intro emails went out 30 Aug to 3 Sep; Wave 2 (new names and follow-ups) was handed to Eduardo on 18 Sep.</div></div>'
-    + '<div><div class="pt">Dubai, meetings from Monday 30 November</div><div class="pd">Suggested departure from Brazil on the Saturday 28 November overnight flight.</div></div>'
-    + '<div><div class="pt">China, week of 7 December</div><div class="pd">Depart the UAE on Friday 4 or Saturday 5 December, depending on preference and flight availability.</div></div>'
+    + KEYS.map(k=>{ const a = AG[k]; return '<div><div class="pt">'+esc(a.name)+', '+esc(a.win)+'</div><div class="pd">'+esc(a.note)+(itinerary(k) ? ' '+esc(itinerary(k)) : '')+'</div></div>'; }).join('')
     + '</div></div>';
   h += '<div id="declzone">'+declHtml(KEYS, true)+'</div>';
   return h;
+}
+/* "Seoul 3 and 4 Dec, Beijing 7 and 8 Dec" from the per-day cities */
+function itinerary(k){
+  if (!CITIES[k]) return '';
+  const days = agDays(k).map(d=>({ d, c: cityOf(k,d.iso) })).filter(x=>x.c && x.c!==TRAVEL);
+  if (!days.length) return '';
+  const groups = []; days.forEach(x=>{ const g = groups[groups.length-1]; if (g && g.c===x.c) g.days.push(x.d); else groups.push({ c:x.c, days:[x.d] }); });
+  const fmt = d=>d.lab.split(' ')[0];
+  return 'Itinerary: '+groups.map(g=>g.c+' '+(g.days.length>1 ? g.days.slice(0,-1).map(fmt).join(', ')+' and '+fmt(g.days[g.days.length-1]) : fmt(g.days[0]))+' '+g.days[0].lab.split(' ')[1]).join(', ')+'.';
 }
 function bindHome(){
   document.querySelectorAll('.acard').forEach(c=>{
@@ -1913,15 +1939,38 @@ function openDocModal(id){
 }
 
 /* ---------- calendar ---------- */
+/* every weekday from the agenda start to its end (Saturdays and Sundays are skipped) */
 function agDays(k){
-  const out = []; const d0 = new Date(AG[k].start+'T00:00:00');
+  const out = []; const d0 = new Date(AG[k].start+'T00:00:00'); const d1 = new Date((AG[k].end||AG[k].start)+'T00:00:00');
   const pad = n=>String(n).padStart(2,'0');
-  for (let i=0;i<5;i++){ const d = new Date(d0.getTime()+i*86400000);
+  for (let i=0;i<31;i++){ const d = new Date(d0.getTime()+i*86400000); if (d>d1) break;
+    if (d.getDay()===0 || d.getDay()===6) continue;
     out.push({ iso: d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),
       wd: d.toLocaleDateString('en-GB',{weekday:'short'}),
       lab: d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) });
   }
+  if (!out.length) out.push({ iso: AG[k].start, wd: d0.toLocaleDateString('en-GB',{weekday:'short'}), lab: d0.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) });
   return out;
+}
+/* city selector (or label) for the top of a calendar column */
+function cityHtml(k, d){
+  const list = CITIES[k]; if (!list) return '';
+  const c = cityOf(k, d.iso);
+  if (mode==='readonly') return c ? '<div class="city'+(c===TRAVEL?' travel':'')+'">'+esc(c)+'</div>' : '';
+  const opts = ['<option value=""'+(c?'':' selected')+'>City to set</option>']
+    .concat(list.map(x=>'<option value="'+esc(x)+'"'+(c===x?' selected':'')+'>'+esc(x)+'</option>'))
+    .concat(['<option value="'+TRAVEL+'"'+(c===TRAVEL?' selected':'')+'>'+TRAVEL+'</option>'])
+    .concat(c && c!==TRAVEL && !list.includes(c) ? ['<option value="'+esc(c)+'" selected>'+esc(c)+'</option>'] : []);
+  return '<select class="citysel'+(c?(c===TRAVEL?' travel':''):' unset')+'" data-d="'+d.iso+'" aria-label="City on '+d.wd+' '+d.lab+'">'+opts.join('')+'</select>';
+}
+async function setCity(k, iso, city){
+  if (!state.days[k]) state.days[k] = {};
+  const old = state.days[k][iso]||'';
+  state.days[k][iso] = city;
+  renderCal(k);
+  const ok = await persist('City', ()=>sb.from('agenda_days').upsert({ region:k, day:iso, city }, { onConflict:'region,day' }));
+  if (ok) toast(city ? city+' set for '+new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) : 'City cleared');
+  else { state.days[k][iso] = old; renderCal(k); }
 }
 function mtgOf(k,d,h){ return state.mtgs[k].find(m=>m.d===d && m.h===h); }
 function renderCal(k){
@@ -1932,9 +1981,9 @@ function renderCal(k){
   let h = '<div class="calhead"><span class="cnt">'+(n? n+' meeting'+(n>1?'s':'')+' scheduled.' : 'No meetings scheduled yet.')+' Click a slot to book an investor.</span>'
     + fixedAll.map(f=>'<span class="fxleg"><i></i>'+esc(f.t)+', '+esc(new Date(f.d+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}))+', '+esc(f.s.split(',')[0])+'. No meeting slots during the breakfast.</span>').join('')
     + '</div>';
-  h += '<div class="calscroll"><div class="cal">';
+  h += '<div class="calscroll"><div class="cal" style="grid-template-columns:56px repeat('+days.length+',minmax(168px,1fr));min-width:'+(56+days.length*176)+'px">';
   h += '<div></div>' + days.map(d=>'<div class="dh"><div class="d1">'+d.wd+' '+d.lab+'</div>'
-      + (k==='ae' && d.wd==='Fri' ? '<div class="d3">Possible departure day</div>' : '')
+      + cityHtml(k, d)
       + fixedOnDay(k,d.iso).map(f=>'<div class="d3 fx">'+esc(f.t)+', '+esc(f.s.split(',')[0])+'</div>').join('')
       + '</div>').join('');
   const cell = (d, hh, m, inner) => {
@@ -1977,6 +2026,7 @@ function renderCal(k){
   h += '</div></div>';
   z.innerHTML = h;
   z.querySelectorAll('.addb').forEach(b=>b.onclick=()=>openPicker(k,b.dataset.d,b.dataset.h));
+  z.querySelectorAll('.citysel').forEach(sel=>sel.onchange=()=>setCity(k, sel.dataset.d, sel.value));
   z.querySelectorAll('.mopen').forEach(b=>b.onclick=()=>openCard(k,b.dataset.id));
   z.querySelectorAll('.mx').forEach(b=>b.onclick=async ()=>{
     const mid = b.dataset.m; const gone = state.mtgs[k].find(m=>m.id===mid);
@@ -1991,7 +2041,7 @@ function openPicker(k,d,hh){
   const host = $('modalhost');
   const dLab = new Date(d+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
   host.innerHTML = '<div class="ovl" id="ovl"><div class="modal pick" role="dialog" aria-modal="true" aria-label="Book a meeting">'
-    + '<div class="mh"><h3>Book '+esc(dLab)+' at '+esc(hh)+'</h3><button type="button" class="mxx" id="mclose">Close</button></div>'
+    + '<div class="mh"><h3>Book '+esc(dLab)+' at '+esc(hh)+(cityOf(k,d) && cityOf(k,d)!==TRAVEL ? ', '+esc(cityOf(k,d)) : '')+'</h3><button type="button" class="mxx" id="mclose">Close</button></div>'
     + '<div class="mb"><input type="search" id="pq" placeholder="Search the '+esc(AG[k].short)+' base" autocomplete="off" aria-label="Search investors">'
     + '<div id="plist"></div></div>'
     + '</div></div>';
