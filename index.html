@@ -243,6 +243,11 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .mtg .mc{font-size:10.5px;color:var(--mut);margin-top:1px}
 .mtg .mx{position:absolute;top:3px;right:4px;border:0;background:none;color:var(--soft);font-size:13px;line-height:1;padding:2px 4px;border-radius:4px}
 .mtg .mx:hover{background:#fff;color:var(--bad)}
+.mtg.fromcard{background:#fff;box-shadow:inset 0 0 0 1.5px var(--sc,#999);margin-top:4px}
+.slot.hascard .mtg.fromcard:first-child{margin-top:0}
+.mtg .mk{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:10.5px;color:var(--ink);margin-top:3px}
+.mtg .mk .ckind{font-size:9px}
+.slot.late{background:#fbfbfc}
 .slot.fixed{background:#fff7e6;box-shadow:inset 0 0 0 1px #f0d9a8;display:flex;flex-direction:column;gap:4px;padding:6px}
 .slot.fixed .fxh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:0 2px;color:#8a5a00}
 .slot.fixed .fxh b{font-size:12px;font-weight:700}
@@ -557,7 +562,10 @@ const RGN = {us:'US', ae:'UAE', cn:'ASIA'};
 const CITIES = { ae:['Dubai','Abu Dhabi'], cn:['Seoul','Beijing','Shanghai','Hong Kong'] };
 const TRAVEL = 'Travel day';
 function cityOf(k, iso){ return (state.days && state.days[k] && state.days[k][iso]) || ''; }
-const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+/* bookable hours per agenda: New York 08:00 to 18:00; UAE and Asia run until 22:00 for dinners and late calls */
+const hourRange = (a,b)=>Array.from({length:b-a+1},(_,i)=>String(a+i).padStart(2,'0')+':00');
+const HOURS_BY = { us: hourRange(8,18), ae: hourRange(8,22), cn: hourRange(8,22) };
+function hoursOf(k){ return HOURS_BY[k] || hourRange(8,18); }
 /* Fixed events on the trip calendar. They are shown on the affected slots but never block a booking. */
 const FIXED = { us: [ { d:'2026-10-21', hours:['09:00','10:00'], t:'XP breakfast', s:'09:00 to 11:00, XP New York office, hosted with Headline', status:'breakfast' } ], ae:[], cn:[] };
 const BREAKFAST = FIXED.us[0];
@@ -1054,7 +1062,7 @@ function renderHome(){
       + (s.tierA?'<div><div class="n">'+s.tierA+'</div><div class="l">Tier A</div></div>':'')
       + '<div><div class="n">'+s.contacted+'</div><div class="l">Contacted</div></div>'
       + '<div><div class="n">'+s.booked+'</div><div class="l">Booked</div></div>'
-      + '<div><div class="n">'+state.mtgs[k].length+'</div><div class="l">Scheduled</div></div>'
+      + '<div><div class="n">'+schedCount(k)+'</div><div class="l">Scheduled</div></div>'
       + '</div>'
       + '<div class="aopen">Open agenda</div>'
       + '</div>';
@@ -1089,7 +1097,8 @@ function bindHome(){
 function fmtWhen(iso, withTime){
   if (!iso) return '';
   const d = new Date(iso); if (isNaN(d)) return String(iso);
-  const o = { weekday:'short', day:'numeric', month:'short' };
+  /* meeting times are the local time of the trip city, stored as if UTC, so they read the same in Dubai, São Paulo or New York */
+  const o = { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' };
   if (withTime!==false && /T\d\d:\d\d/.test(String(iso))) { o.hour='2-digit'; o.minute='2-digit'; }
   return d.toLocaleString('en-GB', o).replace(',', '');
 }
@@ -1336,7 +1345,7 @@ function refreshCounts(k){
     + tile(s.booked,'Booked') + tile(s.held,'Held')
     + (k==='us' ? tile(rowsOf(k).filter(x=>rec(x.i).ev==='registered').length + '<span style="font-size:13px;font-weight:500;color:var(--mut)"> +'+rowsOf(k).filter(x=>rec(x.i).ev==='expected').length+' expected</span>','At LAVCA Week') : '');
   if ($('abar')) $('abar').innerHTML = sbarHtml(rowsOf(k)) + legendHtml(rowsOf(k));
-  if ($('calcount')) $('calcount').textContent = state.mtgs[k].length ? ' ('+state.mtgs[k].length+')' : '';
+  if ($('calcount')) $('calcount').textContent = schedCount(k) ? ' ('+schedCount(k)+')' : '';
 }
 
 /* ---------- targets table ---------- */
@@ -1397,7 +1406,11 @@ function closeCard(){
   card.k = null; card.id = null; $('cardhost').innerHTML = '';
   document.removeEventListener('keydown', cardEsc);
 }
-function toLocalInput(iso){ if (!iso) return ''; const d=new Date(iso); if (isNaN(d)) return ''; const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); }
+function toLocalInput(iso){ if (!iso) return ''; const d=new Date(iso); if (isNaN(d)) return ''; const p=n=>String(n).padStart(2,'0'); return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate())+'T'+p(d.getUTCHours())+':'+p(d.getUTCMinutes()); }
+/* 'YYYY-MM-DDTHH:MM' from the input, kept as the trip city's wall-clock time */
+function fromLocalInput(a){ return a ? a.slice(0,16)+':00Z' : ''; }
+function mtgDay(iso){ return String(iso||'').slice(0,10); }
+function mtgHour(iso){ return String(iso||'').slice(11,16); }
 function renderCard(first){
   const d = $('drawer'); if (!d || !card.id) return;
   const k = card.k, x = findRow(k, card.id); if (!x) { closeCard(); return; }
@@ -1542,7 +1555,7 @@ function bindCard(k, x){
   if ($('medit')) $('medit').onclick = ()=>{ card.editMtg = true; renderCard(false); const i=$('m_k'); if (i) i.focus(); };
   if ($('mcancel2')) $('mcancel2').onclick = ()=>{ card.editMtg = false; renderCard(false); };
   if ($('msave2')) $('msave2').onclick = ()=>{
-    const a = $('m_a').value; const iso = a ? new Date(a).toISOString() : '';
+    const iso = fromLocalInput($('m_a').value);
     card.editMtg = false;
     applyEdits(x.i, { mk:$('m_k').value, ma:iso, mp:$('m_p').value.trim() }, 'Meeting').then(ok=>{ if (ok) toast('Meeting details saved'); });
   };
@@ -1973,12 +1986,35 @@ async function setCity(k, iso, city){
   else { state.days[k][iso] = old; renderCal(k); }
 }
 function mtgOf(k,d,h){ return state.mtgs[k].find(m=>m.d===d && m.h===h); }
+/* meetings entered in a name's card (format, date, place) that fall on the trip days and have no calendar slot of their own */
+function cardMtgs(k, days){
+  const dayset = new Set((days||agDays(k)).map(d=>d.iso));
+  return rowsOf(k).map(x=>({ x, r:rec(x.i) }))
+    .filter(o=>o.r.ma && (o.r.s==='confirmed' || o.r.s==='met' || o.r.s==='tentative') && dayset.has(mtgDay(o.r.ma)) && !state.mtgs[k].some(m=>m.inv===o.x.i))
+    .map(o=>Object.assign(o, { d:mtgDay(o.r.ma), hm:mtgHour(o.r.ma), hh:mtgHour(o.r.ma).slice(0,2)+':00' }))
+    .sort((a,b)=>a.hm.localeCompare(b.hm) || a.x.o.localeCompare(b.x.o));
+}
+function schedCount(k){ return state.mtgs[k].length + cardMtgs(k).length; }
+function cardMtgHtml(o){
+  const st = STATUS[o.r.s] || STATUS.not_started; const ct = contactOf(o.x);
+  return '<div class="mtg fromcard" style="--sc:'+st.c+'" title="Entered in the card. Open the card to change it.">'
+    + '<div class="mo"><i></i><span class="mopen" data-id="'+esc(o.x.i)+'" style="cursor:pointer">'+esc(o.x.o)+'</span></div>'
+    + (ct.k ? '<div class="mc">'+esc(ct.k)+'</div>' : '')
+    + '<div class="mk">'+(o.r.mk==='call'?'<span class="ckind call">Call</span>':o.r.mk==='in_person'?'<span class="ckind inp">In person</span>':'')
+    + (o.hm.slice(3)!=='00' ? '<span>'+esc(o.hm)+'</span>' : '')
+    + (o.r.mp ? '<span class="mutcell">'+esc(o.r.mp)+'</span>' : '')
+    + (o.r.s==='tentative' ? '<span class="mutcell">tentative</span>' : '') + '</div>'
+    + '</div>';
+}
 function renderCal(k){
   const z = $('calzone'); if (!z) return;
   const days = agDays(k);
-  const n = state.mtgs[k].length;
+  const fromCards = cardMtgs(k, days);
+  const n = state.mtgs[k].length + fromCards.length;
+  const HOURS = hoursOf(k);
+  const extraHours = [...new Set(fromCards.map(o=>o.hh).filter(h=>!HOURS.includes(h)))].sort();
   const fixedAll = (FIXED[k]||[]).filter(f=>days.some(d=>d.iso===f.d));
-  let h = '<div class="calhead"><span class="cnt">'+(n? n+' meeting'+(n>1?'s':'')+' scheduled.' : 'No meetings scheduled yet.')+' Click a slot to book an investor.</span>'
+  let h = '<div class="calhead"><span class="cnt">'+(n? n+' meeting'+(n>1?'s':'')+' scheduled' : 'No meetings scheduled yet')+(fromCards.length ? ', '+fromCards.length+' from the cards' : '')+'. Click a slot to book an investor; meetings with a date in a name\'s card appear here too.</span>'
     + fixedAll.map(f=>'<span class="fxleg"><i></i>'+esc(f.t)+', '+esc(new Date(f.d+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}))+', '+esc(f.s.split(',')[0])+'. No meeting slots during the breakfast.</span>').join('')
     + '</div>';
   h += '<div class="calscroll"><div class="cal" style="grid-template-columns:56px repeat('+days.length+',minmax(168px,1fr));min-width:'+(56+days.length*176)+'px">';
@@ -2019,8 +2055,18 @@ function renderCal(k){
           + legacy.map(m=>'<div class="fxs"><span class="fxt">'+m.h+'</span>'+cell(d, m.h, m, fx.t)+'</div>').join('')
           + '</div>';
       } else {
-        h += '<div class="slot">'+cell(d, hh, mtgOf(k,d.iso,hh), '')+'</div>';
+        const fc = fromCards.filter(o=>o.d===d.iso && o.hh===hh);
+        const m = mtgOf(k,d.iso,hh);
+        h += '<div class="slot'+(fc.length?' hascard':'')+'">'+(m || !fc.length ? cell(d, hh, m, '') : '')+fc.map(cardMtgHtml).join('')+'</div>';
       }
+    }
+  }
+  /* meetings entered in a card outside the usual hours get their own rows at the bottom */
+  for (const hh of extraHours){
+    h += '<div class="hh">'+hh+'</div>';
+    for (const d of days){
+      const fc = fromCards.filter(o=>o.d===d.iso && o.hh===hh);
+      h += '<div class="slot late'+(fc.length?' hascard':'')+'">'+fc.map(cardMtgHtml).join('')+'</div>';
     }
   }
   h += '</div></div>';
